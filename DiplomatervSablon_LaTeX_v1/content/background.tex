@@ -230,9 +230,21 @@
 	
 	Magnetic Resonance Imaging (MRI) is a diagnostic technology that uses magnetic and radio frequency fields to image tissues\cite{atkins2002fully}. It produces high-fidelity images, while using no ionizing radiation, making possible its repeated use in patients. 
 	
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=\textwidth]{figures/mri_scanner.png}
+		\caption{Schematic of an MRI machine\cite{mripage}}
+	\end{figure}
+	
 	The procedure can be performed without contrast (no possible allergy problems) and is painless, but due to the long scan time and the design of machines it can induce claustrophobia and young children might require sedation to remain still. Comparatively to other imaging techniques MRI is also rather expensive, which is an important factor in deep learning applications where a large volume of data is needed.
 	
 	MRI is well suited for examining abdominal organs, such as the liver, joints and finding tumours, cysts and other abnormalities and unhealthy tissue in various parts of the body. It is also good for providing a view of the cranium and examining the brain and the spinal cord.
+	
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=\textwidth]{figures/slice_types.png}
+		\caption{Types of slices in brain MRIs\cite{mripage}}
+	\end{figure}
 	
 	Functional MRI (fMRI) extends the capabilities of MRI by measuring brain activity, via a method called Blood Oxygen Level Dependant Constant\cite{glover2011overview}. This technique works because of the haemodynamic response: when a part of the brain is activated, blood flows the region (after an initial dip). The surge of oxygenated blood increases the ratio of oxygenated hemoglobin.
 	
@@ -256,6 +268,12 @@
 		%TODO ide signal detection meg ilyenek? Vagy az too much?
 		
 		The number and size of voxels reflects the quality of the scan and high-resolution images permit the detailed analysis of brain responses. fMRIs recorded this way reflect neural activity: the presented task increases local neuron activity, which in turn increases metabolic rate, which also means increased blood flow, which translates into an increased MRI signal. The time it takes for this process to occur also means that the changes in the fMRI are delayed compared to the stimuli of the patient by 1-2 seconds\cite{deyoe1994functional}.
+		
+		\begin{figure}[!h]
+			\centering
+			\includegraphics[width=\textwidth]{figures/fmri_example.jpg}
+			\caption{Example of an fMRI scan showing different activations on expressions and speech\cite{ovaysikia2011word}}
+		\end{figure}
 		
 		
 		\subsubsection{Processing}

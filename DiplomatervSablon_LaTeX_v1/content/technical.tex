@@ -5,28 +5,56 @@
 \chapter{Technical background}
 %----------------------------------------------------------------------------
 
-\section{Deep Learning Frameworks}
+	In my work I used the Python programming language both for implementing machine learning solutions and for creating pipelines; downloading, sorting and preparing data, as well as various scripting needs. For running deep learning tasks I have employed the Google Colab\footnote{\url{https://colab.research.google.com/}}, an online compute platform that lets users run Jupyter notebooks with limitations, one of my own laptops, equipped with an Nvidia GTX 1050Ti portable, and for the particularly resource intensive diffusion task\ref{sec:diffusion} I have received help from a corporate compute cluster.
+	%TODO acknoledmentet iderefelni van értelme? 
 
-	In my work I used Python both for implementing machine learning solutions and for creating pipelines; downloading, sorting and preparing data, as well as various scripting needs. For the purpose of organizing the used Python packages and ensuring a consistent environment I have used a virtual conda environment created with miniconda.
-	
-	For machine learning tasks I have employed various libraries commonly used for such tasks to avoid reimplementing standard solutions, both in support of my own final solutions and for creating baseline solutions for comparison and for data exploration and visualization purposes.
+\section{Used Frameworks and Packages}
 
-	\subsection{Pytorch}
+	For machine learning tasks I have employed various libraries commonly used for such tasks to avoid reimplementing standard solutions, both for creating the different models for comparison and for data exploration and visualization purposes.
 	
-	\subsection{DGL}
+	For the purpose of organizing the used Python packages and ensuring a consistent environment I have used a various virtual environment management tools in my work: venv, uv and conda. In these types of projects package management is a common painpoint. Since machine learning is a very active field with new discoveries and optimizations packages are updated quite often. Backwards compatibility is not guaranteed usually and issues of certain packages needing another package in a certain version, but not being labeled accurately come up commonly.
 	
-	\subsection{Sklearn}
+	Even when all needed package versions are documented correctly in a project, there can still be problems for people trying to recreate the results. Older package versions often become unsupported and unavailable, and package managers might disallow certain combinations of installations.
+
+	\subsection{Main Deep Learning Framework}
 	
-	\subsection{Tsfresh}
+	The main base deep learning framework I have used in all of my work is Pytorch. Pytorch is one of the most popular foundational machine learning libraries (alongside TensorFlow) used for a wide variety of applications, such as computer vision or NLP. 
 	
-	\subsection{Xgboost}
+	At it's core is the provided tensor computing capabilities and an automatic differentiation system, which enables backpropagation. Moreover, Pytorch also has a neural networks module with a lot of widely used lower level concepts: abstract model class, basic layers (e. g.: fully connected, convolutional), optimizers.
+	
+	\subsection{Graph Neural Network Frameworks}
+	
+	It is completely possible to implement graph neural network layers and complete graph networks only using the Pytorch library and I have also done so %TODO ide linkelni
+	, but there are also frameworks built to enable users to create these networks in just a few lines. These libraries have implementations of commonly used GNN layers (such as GCN or GAT) and usually have their own format for graph storage. This can speed up model creation greatly but working purely from Pytorch offers the greatest flexibility.
+	
+	I have tried to specific libraries in my work: DGL and PyG. DGL (Deep Graph Library)is a framework agnostic and scalable solution. It represents graphs with a DGLGraph object which stores all graphs as directed using an edge list. It is also possible to add both edge and node features.
+	
+	PyG (Pytorch Geometric) was specifically created to enhance Pytorch with better GNN capabilities. It aims to follow the design principles of vanilla Pytorch and provide a good interface to both researchers and first-time users.  
+	
+	\subsection{Other Machine Learning Tools}
+	
+	Sklearn (Scikit Learn) is a comprehensive library of machine learning solutions, offering a wide variety of models for classification, regression, clustering and dimensionality reduction, as well as model selection and preprocessing tools.
+	
+	XGBoost (eXtreme Gradient Boosting) is a gradient boosting library that provides a well optimized and very performant gradient boosting machine implementation.
+	
 	
 	\subsection{Supporting packages}
-
+	Numpy is a commonly used computing framework with great features regarding N-dimensional arrays. Most machine learning use it to some degree and are compatible with its formats.
+	
+	Matplotlib is a powerful plotting and visualisation library for Python. It helps in creating easy to understand and colourful graphs from data. Seaborn is an interface to use matplotlib for complex statistical graphics.
+	
+	Nibabel and nilearn are specifically neuroimaging libraries: the first one for handling the associated file formats and providing access to neuroimages and the latter for enabling analysis of brain volumes.
+	
+	Tsfresh is a tool designed to calculate time series characteristics. It also contains methods to evaluate the importance of these features for regression and classification tasks.
+	
+	
 \section{Using fMRI data}
 
-	\subsection{Data formats}
+	fMRIs produce a very special four dimensional data mass, that is not easily readable by default in most cases. Fortunately there have been specific data formats and libraries created to enable researchers to transport, view and extract information from these scans.
+
+	\subsection{Data format}
 	
-	\subsection{Pre-processing}
+	NIFTI (Neuroimaging Informatics Technology Initiative) is a file format created to store brain imaging data. 
+	
 	
 	\subsection{Extracting ROI Values and Connectomes}
