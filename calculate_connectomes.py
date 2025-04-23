@@ -28,17 +28,13 @@ def load_site(site):
     return (autistic, autistic_file_names, control, control_file_names)
 
 if __name__ == '__main__':
-    site = 'UM_1'
+    site = 'NYU'
     (autistic, a_files, control, c_files) = load_site(site)
     estimator = connectome.ConnectivityMeasure()
 
-    autistic_connectomes = estimator.fit(autistic)
-    control_connectomes = estimator.fit(control)
+    autistic_connectomes = estimator.fit_transform(autistic)
+    control_connectomes = estimator.fit_transform(control)
 
     np.save(f'{ROOT_PATH}/{site}/connectomes', autistic_connectomes)
     np.save(f'{ROOT_PATH}/{site}_control/connectomes', control_connectomes)
-
-
-
-
 
