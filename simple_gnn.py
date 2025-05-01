@@ -6,7 +6,7 @@ from torch_geometric.nn import GCNConv
 import pytorch_dataset
 from torch_geometric.loader import DataLoader
 
-dataset = pytorch_dataset.AutismDataset(['NYU'])
+dataset = pytorch_dataset.AutismDataset(['NYU'], node_features='identity')
 
 class GCN(torch.nn.Module):
     def __init__(self):
@@ -17,16 +17,20 @@ class GCN(torch.nn.Module):
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
-
+        print(x)
         x = self.conv1(x, edge_index)
+        print(x)
         x = F.relu(x)
         x = F.dropout(x, training=self.training)
         x = self.conv2(x, edge_index)
+        print(x)
         x = F.relu(x)
         x = x.view(-1, 16*dataset.num_nodes)
+        print(x)
         x = self.fully_connected(x)
+        print(x)
 
-        return F.log_softmax(x, dim=1)
+        return F.softmax(x, dim=1)
     
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -38,7 +42,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
 
 
 model.train()
-for epoch in range(20):
+for epoch in range(1):
     for data in train_dataloader:
         data = data.to(device)
         optimizer.zero_grad()
@@ -52,6 +56,7 @@ model.eval()
 for data in test_dataloader:
     data = data.to(device)
     pred = model(data).argmax(dim=1)
+    print(pred)
     correct += (pred == data.y).sum()
     
 acc = int(correct) / int(test_dataloader.dataset.__len__())

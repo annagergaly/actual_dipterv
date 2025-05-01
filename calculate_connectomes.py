@@ -2,6 +2,7 @@ from nilearn import connectome
 import os
 import numpy as np
 import pandas as pd
+from sklearn.covariance import GraphicalLassoCV, LedoitWolf
 
 PREPROCESS_TYPE = f'Outputs/cpac/filt_noglobal/rois_ho'
 ROOT_PATH = f'C:/Users/Anna/Documents/actual_dipterv/data'
@@ -28,13 +29,13 @@ def load_site(site):
     return (autistic, autistic_file_names, control, control_file_names)
 
 if __name__ == '__main__':
-    site = 'NYU'
+    site = 'UM_1'
     (autistic, a_files, control, c_files) = load_site(site)
-    estimator = connectome.ConnectivityMeasure()
+    estimator = connectome.ConnectivityMeasure(kind='tangent', cov_estimator=LedoitWolf())
 
     autistic_connectomes = estimator.fit_transform(autistic)
     control_connectomes = estimator.fit_transform(control)
 
-    np.save(f'{ROOT_PATH}/{site}/connectomes', autistic_connectomes)
-    np.save(f'{ROOT_PATH}/{site}_control/connectomes', control_connectomes)
+    np.save(f'{ROOT_PATH}/{site}/connectomes_tangent', autistic_connectomes)
+    np.save(f'{ROOT_PATH}/{site}_control/connectomes_tangent', control_connectomes)
 
