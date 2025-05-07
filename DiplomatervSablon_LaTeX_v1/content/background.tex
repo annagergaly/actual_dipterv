@@ -173,18 +173,37 @@
 	
 	\subsubsection{Graph Attention Networks}
 	
-	%TODO GATról írni kicsit
+	Graph Attention Networks (GATs) leverage masked self-attention layers to address problems present in earlier architectures of graph convolutional networks\cite{gat_paper}. By using the attention to implicitly assign different weights to nodes in a neighbourhood, the model can gain a deeper understanding of the graph structure without the use of costly matrix operations.
+	
+	In a layer of a GAT architecture input node features ($h \in \mathbb{R}^{N\times F}$, where $N$ is the number of nodes and $F$ is the number of features) are turned into output node features by first applying a linear transformation via a weight matrix ($W \in \mathbb{R}^{F'\times F} $) and then performing self-attention ($a$) on the nodes. The full equation is as follows:
+	
+	$$ h'_i = \sigma (\sum_{j \in \mathcal{N}_i} \textnormal{softmax}(a(Wh_i, Wh_j))Wh_j ) $$
+	
+	Where $\sigma$ is the non-linear activation function and $h_i$ and $h_j$ refer to the node features belonging to node $i$ and $j$. Self-attention coefficients $ e_{ij} = a(W h_i, W h_j) $ indicate the importance of node $j$'s features to node $i$. If the model would allow every node to attend every node, that would mean dropping all structural information. To avoid this, attention is masked: $e_{ij}$ is only computed for nodes $j$ that are in the neighbourhood of node $i$ ($j \in \mathcal{N}_i$). This is generally the first-order neighbourhood, but it can be parametrized.
+	
+	The attention mechanism is a feedforward neural network, parametrized by the concatenated transformed node features of the two nodes. The calculated coefficients are then normalized across the choices of $j$ using the softmax function. Once obtained, the normalized coefficients are used to compute the linear combination of the features corresponding to them, resulting in the final ouput of the layer (after applying an activation function). Multi-headed attention is commonly used to stabilize the learning process.
 	
 	
 	\subsubsection{GraphSAGE}
-	%TODO graphSAGEről is ha használom majd
 	
+	GraphSAGE (graph SAmple and AggregatE) was created as a general inductive framework to leverage node feature information and efficiently generate node embeddings for previously unseen data\cite{graphasge_paper}. Each node of the graph is represented as some aggregation of its neighbors, therefore, even if a new unseen node is encountered, it can be represented as some aggregation of its neighbourhood. 
+	
+	GraphSAGE aggregates information from the neighbours of nodes similarly to other architectures, but also takes a step to sample this neighbourhood: a fixed-size set gets uniformly sampled from the available neighbourhood. This is resampled at each iteration when calculating embeddings. Weight matrices are learned using gradient descent based on random walks: the	graph-based loss function encourages nearby nodes to have similar representations, while enforcing that the representations of disparate nodes are highly distinct.
+	
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=\textwidth]{figures/graphsage.png}
+		\caption{Visual illustration of the GraphSAGE sample and aggregate approach.\cite{graphasge_paper}}
+	\end{figure}
+	
+	The aggregation method from the neighbourhood is an important feature in a GraphSAGE model, a symmetrical function is most desired, since node neighbours do not have a set ordering. Based on the used aggregation function GraphSAGE can be very similar to GCNs: the mean aggregation method results in the convolution propagation rule of GCNs. 
 	
 \section{Medical data}
 
 	We can call anything medical data that relates to human healthcare in one way or another. This most commonly means data collected by healthcare institutions about patients using sensor equipment, but it could also be information about a patient's habits or general environment, data from drug test trials or even location data in case of epidemiological contact tracing. 
 	
 	\subsection{Legal and ethical concerns}
+	\label{sec:legal}
 	
 	This kind of data is often very personal and regarded as sensitive data: people are entitled to equal treatment regardless of medical status and as such information about the health status of an individual is protected. Many patients do not want employers or other third parties who could use such information against them to know details about their conditions and their treatment.
 	
@@ -221,10 +240,7 @@
 	
 	The earliest discovered medical imaging tool was the X-ray, discovered by Röntgen in 1985, followed by the CT imaging technique in 1963. Research into the MRI started in the 1970s and the first prototypes were tested in 1980.
 	
-	
-	%TODO ábra + esetleg egyéb képek
-	
-	%TODO kéne többet írni a röntgen + CT vonalról?
+	%TODO ábra
 	
 	\subsection{MRI and fMRI imaging}
 	
@@ -265,8 +281,6 @@
 		
 		MRI machines provide a strong, constant magnetic field, then send short, localized pulses of radio frequency signals to cause the misalignment. As these atoms realign themselves the machine uses the signals emitted to construct a three dimensional image of the area, comprised of individual cuboid elements, called voxels, based on the measurements.
 		
-		%TODO ide signal detection meg ilyenek? Vagy az too much?
-		
 		The number and size of voxels reflects the quality of the scan and high-resolution images permit the detailed analysis of brain responses. fMRIs recorded this way reflect neural activity: the presented task increases local neuron activity, which in turn increases metabolic rate, which also means increased blood flow, which translates into an increased MRI signal. The time it takes for this process to occur also means that the changes in the fMRI are delayed compared to the stimuli of the patient by 1-2 seconds\cite{deyoe1994functional}.
 		
 		\begin{figure}[!h]
@@ -288,7 +302,7 @@
 		
 		If the segmentation is completed for an entire scan, the average activation of these regions can be computed and used to draw conclusions about how this brain region works normally or how it participates in a given task. Even more information can be extracted if we are able to analyse how the regions interact with each other\cite{rogers2007assessing}. 
 		
-		The correlations between the fluctuations of activation in regions can reveal information about how these segments of the brain interact. These correlations change depending on the subject or the performed task, showing that regions interact differently under different conditions. Several methods have been proposed for assessing connectivity, most commonly using the time series of ROI activations to calculate covariance or correlation. 
+		The correlations between the fluctuations of activation in regions can reveal information about how these segments of the brain interact. These correlations change depending on the subject or the performed task, showing that regions interact differently under different conditions. Several methods have been proposed for assessing connectivity, most commonly using the time series of ROI activations to calculate covariance or correlation. %TODO citeolni ide a nilearn oldalról
 		
 		The goal is to yield a complete matrix of connectivity values between the regions, which can be thought of as sort of weighted brain graph describing how connected these regions are, often referred to as connectomes. A typical brain connectome is comprised of nodes for each brain ROI and edge weights that denote the connectivity strength between two ROIs\cite{bassett2017network}.
 		

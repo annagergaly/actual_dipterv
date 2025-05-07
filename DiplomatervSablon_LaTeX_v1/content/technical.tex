@@ -6,7 +6,6 @@
 %----------------------------------------------------------------------------
 
 	In my work I used the Python programming language both for implementing machine learning solutions and for creating pipelines; downloading, sorting and preparing data, as well as various scripting needs. For running deep learning tasks I have employed the Google Colab\footnote{\url{https://colab.research.google.com/}}, an online compute platform that lets users run Jupyter notebooks with limitations, one of my own laptops, equipped with an Nvidia GTX 1050Ti portable, and for the particularly resource intensive diffusion task\ref{sec:diffusion} I have received help from a corporate compute cluster.
-	%TODO acknoledmentet iderefelni van értelme? 
 
 \section{Used Frameworks and Packages}
 
@@ -24,8 +23,7 @@
 	
 	\subsection{Graph Neural Network Frameworks}
 	
-	It is completely possible to implement graph neural network layers and complete graph networks only using the Pytorch library and I have also done so %TODO ide linkelni
-	, but there are also frameworks built to enable users to create these networks in just a few lines. These libraries have implementations of commonly used GNN layers (such as GCN or GAT) and usually have their own format for graph storage. This can speed up model creation greatly but working purely from Pytorch offers the greatest flexibility.
+	It is completely possible to implement graph neural network layers and complete graph networks only using the Pytorch library and I have also done so, but there are also frameworks built to enable users to create these networks in just a few lines. These libraries have implementations of commonly used GNN layers (such as GCN or GAT) and usually have their own format for graph storage. This can speed up model creation greatly but working purely from Pytorch offers the greatest flexibility.
 	
 	I have tried to specific libraries in my work: DGL and PyG. DGL (Deep Graph Library)is a framework agnostic and scalable solution. It represents graphs with a DGLGraph object which stores all graphs as directed using an edge list. It is also possible to add both edge and node features.
 	
@@ -36,6 +34,8 @@
 	Sklearn (Scikit Learn) is a comprehensive library of machine learning solutions, offering a wide variety of models for classification, regression, clustering and dimensionality reduction, as well as model selection and preprocessing tools.
 	
 	XGBoost (eXtreme Gradient Boosting) is a gradient boosting library that provides a well optimized and very performant gradient boosting machine implementation.
+	
+	Denoising-diffusion-pytorch is a package commonly used for experimenting and training diffusion models. It provides an easy interface to train diffusion models with custom networks and enables easy DDIM sampling.
 	
 	
 	\subsection{Supporting packages}
@@ -54,7 +54,19 @@
 
 	\subsection{Data format}
 	
-	NIFTI (Neuroimaging Informatics Technology Initiative) is a file format created to store brain imaging data. 
+	NIFTI (Neuroimaging Informatics Technology Initiative) is a file format created to store brain imaging data\cite{nifti}. It was agreed upon as a replace the previous ANALYZE format, which was widespread but had problems: the main problem, that NIFTI aimed to solve was that there was not adequate information about orientation.
+	
+	Instead of separate files for meta-information and the actual image (like in ANALYZE), this format allows storage as a single .nii file. Since there are very often large areas of a single colour or masked sections these files can be compressed with great results. Most available datasets are downloadable as nii.gz files.
+	
+	The first three dimensions are reserved for spatial dimensions ($x$, $y$ and $z$) and the fourth one is for time, $t$. The remaining dimensions from fifth to seventh can be used to store other information. The fifth dimension, however, can still have some predefined uses, such as to store voxel-specific distributional parameters or to hold vector-based data. 
+	
+	The first 348 bytes (or for the later/current version NIFTI-2 500 bytes) of the file are reserved for the metadata header which is full of information on how to interpret the actual data in the file. Great care has been to taken to make ANALYZE, NIFTI-1 and NIFTI-2 as compatible with each other as possible, while advancing the user experience and representation capabilities of the file format. Nibabel is compatible with all of these formats, providing an easy way to access this data from Python.
 	
 	
 	\subsection{Extracting ROI Values and Connectomes}
+	\label{sec:extract}
+	
+	Using the nilearn package it is possible to load brain atlases and use them to segment the brain scan loaded from a NIFTI file using nibabel. It is also possible to create masks and use only certain parts of the brain/atlas. This allows for the creation of average ROI activation timeseries for each region. This means we end up with a tensor that is number of patients $\times$ timesteps $\times$ number of ROIs in size.
+	
+	Nilearn also has tools to perform the approximation of connectomes from these timeseries. The ConnectivityMeasure class capable of calculating various types of functional connectivity matrixes on multiple subjects. It can be parameterized with a covariance estimator object for more control over the resulting connectomes.
+	

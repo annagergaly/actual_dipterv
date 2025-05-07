@@ -5,7 +5,6 @@
 \chapter{Methods and Implementation}
 %----------------------------------------------------------------------------
 
-%TODO jobb nevet kitalálni ennek?
 \section{Graph Neural Networks on Connectomes}
 
 	\subsection{Dataset}
@@ -23,8 +22,6 @@
 	The very close ratio of affected vs control subjects (539 to 573) means the dataset is well-balanced in terms of a classification task on the diagnosis of subjects. 
 	
 	\subsection{Methodology}
-	
-	%TODO cite
 	In the paper \cite{wang2021graph} by Wang et al. researchers worked with the ABIDE dataset to create a graph convolutional network based architecture for predicting the diagnosis of a patient based on the resting state fMRI. 
 	
 	\subsection{Results}
@@ -33,12 +30,223 @@
 
 \section{Connectome-based diffusion}
 \label{sec:diffusion}
+	
+	Deep learning methods are generally known for needing a large number of samples to produce the outstanding results they are capable of\cite{alzubaidi2023survey}. When working with naturally occurring data such as text and RGB images this is not quite as large of an issue, however medical
+	imaging data, such MRI and CT scans, poses a problem, as it is much harder to access.
+	
+	In case of fMRI scans this is partly due to the cost associated with the machines and taking scans and the cost of creating high-quality datasets, as they usually require many hours of work by experts in their respective fields. Furthermore, accessing these datasets is difficult due to privacy concerns and the sensitive nature of said data\ref{sec:legal}.
+
+	Data augmentation techniques can be used to counteract these hurdles, an important one of these is data synthesis, creating entirely new samples based previously collected data. The goal of this project was to generate synthetic three dimensional fMRI brain scans. By employing diffusion generative models it is possible to produce high-fidelity images based on previous scans.
+	
+	Generative models are capable of generating novel samples that they have not seen previously, based on the distribution learned from the training samples. The two types of generative models used in this model are Variational Autoencoders (VAEs) and diffusion models.
+	
+	Variational Autoencoders combine deep neural networks with probabilistic modelling for image generation\cite{kingma2013auto}. Instead of learning deterministic encoding, like standard autoencoders\cite{bank2023autoencoders}, VAEs learn a probabilistic representation, where the latent space follows a distribution which allows for controlled sampling and generation.
+	
+	A VAE is made up of two parts, an encoder and a decoder. The encoder usually consists of a series of convolutional and pooling layers to downsample the data to create a bottleneck. From this latent space, the decoder works with convolutional and unpooling (upsampling) layers to try and reconstruct the input. 
+	
+	Once trained, the model is capable of generating new samples by sampling from the prior distribution of the latent variable $p(z) = \mathcal{N}(0,I)$ and passing in the sample at the bottleneck to the decoder part of the model.
+	
+	Denoising Diffusion Probabilistic Models take inspiration from thermodynamics (particularly Langevin dynamics\cite{welling2011bayesian}) and instead of generating a sample in one step, they use a process of iterative noising and denoising\cite{ho2020denoising}. These models have become state of the art for various image synthesis tasks, producing high-fidelity results. This does come at a cost though: these models are very computationally expensive, even with further improvements, such as DDIMs (Denoising Diffusion Implicit Models\cite{song2020denoising}).
+	
+	During the forward noising process noise is sampled from a Gaussian distribution and added to the input image according to a noise scheduler. This process is repeated usually hundreds of times as the image shifts to a pure noise version (see Figure \ref{fig:scheduler} for examples) as the time $t$ runs from 0 to $T$.
+	
+	\begin{figure}[!h]
+		\label{fig:scheduler}
+		\centering
+		\includegraphics[width=\textwidth]{figures/scheduler.png}
+		\caption{Linear (top) and cosine (bottom) noise schedulers being applied to an image of a small white dog \cite{nichol2021improved}}
+	\end{figure}
+	
+	
+	The backwards process is the task of iteratively removing noise from the destroyed image, starting from random noise. This does not have an exact solution due to information loss, so it is approximated by a neural network. The network receives the current timestep in the noising process $t$ and the image, aiming to calculate the noise, so it can be subtracted.
+	
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=\textwidth]{figures/diffusion.png}
+		\caption{The forward and backward process of diffusion\cite{ho2020denoising}}
+	\end{figure}
+	
+	
+	Since generating in the original fMRI domain is incredibly resource intensive as the data is always at least 3 dimensional, only very small resolution samples could be generated within reasonable computation demands. The idea was to take the generative part of the model to a different space, by using a more compact representation of the brain scan: the average activation values of brain regions (ROIs) and the generated connectomes seemed like a good fit for this purpose.
 
 	\subsection{Dataset}
 	
+	The HCP dataset (Human Connectome Project) was collected by WU-Minn HCP consortium. The goal of the human connectome project is to facilitate research into mapping	out the human brain, for this reason the project collected high-quality neuroimaging data (MRI, PET and MEG scans) in various studies targeting a variety of problems: Alzheimer's disease, normal brain development or ageing. In doing so they have not only supplied high quality data for neurological researchers, but also established a protocol for such data collection\cite{van2012human}.
+	
+	One of the collected datasets is HCP Young Adult which has scans of over 1100 healthy young adults for the free use of researchers. The dataset encompasses both resting state and task-based MRIs and was collected by 10 institutions in different parts of the world. 
+	
+	This work focuses on the task-based portion of the dataset, where subjects were instructed to imagine moving various parts of their body while the fMRI took place, creating 5 classes in the data based on the body part - tongue, left and right hand, left and right foot respectively. The data can be downloaded from their ConnectomeDB\footnote{\url{https://db.humanconnectome.org/app/template/Login.vm}} in an already image-wise preprocessed state as well. 
+	
+	Creating an easy to use dataset, where the end user wouldn’t need to have all the necessary medical knowledge and computation power to do the initial, required preprocessing steps was also a focus of the project. For this purpose common automated preprocessing pipelines were created to accomplish low-level tasks, such as surface generation, artefact removal and alignment to standard space\cite{glasser2013minimal}.
+	
 	\subsection{Methodology}
 	
+	The ROI+connectome representation first has to be extracted from each sample of the dataset and then they are used as the input for the diffusion model. Since the connectome at this point is not an image but rather a sort of brain graph, a decision has been made to create a model different from most DDPMs, by creating a specialized graph U-net, that can serve as the neural network inside the diffusion model that predicts the noise. To do this, I adapted the original graph U-net\cite{graph-u-net} to work in this setting, by adding time and class conditioning and edge prediction techniques.
+	
+	The resulting generated connectomes and ROI values are then used as conditioning in the bottleneck of a VAE, which has been trained to generate MRI scans with the original images of the same dataset, using the original ROI and connectome values as conditioning during training. 
+	
+	Here, the goal was to make sure the VAE learns how to generate scans that correspond to the information fed at the bottleneck; this way it is possible to generate ROI and connectome samples, which can be turned into high-fidelity MRI samples with significantly less resource usage than if we were generating the MRIs in the first place.
+	
+	\subsubsection{Data Preprocessing}
+	
+	The architecture requires three separate types of data: the fMRI scan itself and the ROI values and connectomes corresponding to the scan. Of these the HCP dataset only contains the preprocessed fMRI scan, the other two needed to be computed in a preprocessing pipeline\ref{sec:extract}. The ROI values were extracted with the help of an atlas, which describes the regions of the brain corresponding to the ROI values. Since the focus of the project was on sensory motor tasks, therefore we filtered for brain regions activated during these tasks (in practice this means 21 ROIs for each side of the brain, so 42 altogether). 
+	
+	With the filtered atlas, a mask can be constructed, to block out unwanted parts of the brain during the extraction. Understanding the format and meaning of the data used in the preprocessing (e.g.: What ROIs and connectomes are and how to calculate them) is difficult as it requires knowledge in the medical domain. 
+	
+	The correct preprocessing was possible thanks to communication from doctors, the documentation of the nilearn package and high-quality HCP dataset. Due to the preprocessing of the dataset, it works best with the Glasser360 brain atlas\cite{sporns2005human}, which was constructed using HCP data and identifies 180+180 (in the left and right hemisphere) regions of interest according to changes in cortical architecture, function, connectivity, and/or topography.
+
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=0.8\textwidth]{figures/atlas.png}
+		\caption{The Glasser360 brain atlas created based on the HCP healthy adults dataset\cite{sporns2005human}}
+	\end{figure}
+
+	After the extraction is complete we get a timeseries of ROI values for each patient. This means a tensor of size $284 \times 16 \times 42$, (time $\times$ repeatedMeasurements $\times$ ROIs). To validate the correctness of the preprocessing a Support Vector Machine was used to classify the ROIs based on the performed task. For this the ROI values need to be standardized per subject, and separated by task. For this a Python script from previous works was used that generates a csv file with the times slices and the task performed at that time interval. 
+	
+	This file is essential in separating the relevant parts of the scans from the noise where no task is performed. The scans contain measurements for 5 tasks performed twice, so in to 10 for
+	each patient, with 16 repeated measurements take by the MRI machine (As a further preprocessing step, before the data was used in models the mean value of these 16 steps was taken). This means 124 of the 284 long
+	scan is noise.
+	
+	Once the preprocessing was correct the SVM achieved 90-95\% accuracy on the classification task based on performed tasks. For calculating the connectomes from the ROI values the nilearn package’s ConnectivityMeasure class was used. 
+	
+	The subject-wise calculated ROIs were separated by tasks and connectomes were calculated for each task separately. Since measurements across different tasks are differ significantly, calculating the connectomes with the tasks mixed would not yield meaningful results.
+	
+	\subsubsection{Proposed Architecture}
+	
+	The model consists of a diffusion block and an autoencoder. The diffusion block is trained on the ROI values and connectomes to also generate ROI values and connectomes, which are used to condition the autoencoder at the bottleneck.
+	
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=\textwidth]{figures/architecture.png}
+		\caption{Visualization of the model architecture, focusing on the flow of data}
+	\end{figure}
+	
+	A big advantage of this model is that the two parts of the model can be trained separately. The autoencoder is trained to be able to reproduce scans with the corresponding connectome. At sampling time  the two models are used in conjunction: the diffusion model generates a connectome and only the decoder part of the autoencoder is used to generate novel samples.
+	
+	For the DDPM and DDIM diffusion blocks the implementation in the denoising-diffusion-pytorch package was used to enable quick experimentation. The package provides an easy interface to train diffusion models with custom networks, though it required some unused parameters to be added to model, that were unnecessary in this use-case.
+	
+	Another advantage of this package is that it enables easy DDIM sampling. This could be used with 200 steps, instead of the 1000 used for training the DDPM. This package sadly lacks the capability for training a network with class conditioning, so for experiments involving class conditioning it was extended manually.
+	
+	For a VAE implementation, since it is not a focus of this work, a choice was made to use an implementation provided by the latent-diffusion Github repository\footnote{\url{https://github.com/CompVis/latent-diffusion}}. The model this library provides has the option to train a VAE that learns representations on 3D data. 
+	
+	The class was modified in minor ways to fit in with the rest of the codebase and  two major changes had to be made to it. Firstly,  the loss function was recalibrated to enable the model to train on the given dataset. Secondly, it was extended with the capability to condition the bottleneck with the ROI values and connectomes. 
+	
+	For the conditioning a small CNN was implemented with a fully connected layer at the end, that takes the 2 × 42 × 42 size ROI and connectome tensor and creates an embedding with the same size as the bottleneck. The conditioning is then implemented by performing Adaptive Instance Normalization\cite{huang2017arbitrary} on the embedding and the values in the bottleneck.
+	
+	\subsubsection{Graph U-net}
+	
+	U-nets are a very successful subtype of CNN architectures, originally invented with the purpose of biomedical image segmentation\cite{ronneberger2015u}. It is widely used in segmentation tasks and other cases where the output needs to have the same dimensions as the input, due to its symmetrical nature. This is the same reason why they're commonly used in diffusion models as the noise prediction neural network\cite{ho2020denoising}.
+	
+	\begin{figure}[!h]
+		\centering
+		\label{fig:unet}		
+		\includegraphics[width=\textwidth]{figures/u-net-architecture.png}
+		\caption{Visualisation of the U-net architecture\cite{ronneberger2015u}}
+	\end{figure}
+	
+	
+	U-nets are named due to their distinctive architecture: the network consists of a contracting and expansive path, which together form a u-shape (Figure \ref{fig:unet}). The contracting path is a typical CNN with convolutions and max pooling. Conversely the expansive path has upsampling and convolutions, while skip connections are also utilized where dimensions match.
+	
+	Since U-nets have been such a successful model type in convolutional networks, there has been an effort to find an analogue in graph convolutional networks as well. Graph U-nets\cite{graph-u-net} follow the original principles of the U-net architecture: the encoder-decoder structure, the skip connections and the general architecture, as seen on Figure \ref{fig:gunet}. 
+	
+	The convolutional layers are replaced by GCN layers and for standard pooling and unpooling layers which do not have an obvious graph equivalent, since they rely on locality in images that is not present in general graphs, novel layers have been developed for graph pooling and unpooling.
+	
+	\begin{figure}[!h]
+		\label{fig:gunet}
+		\centering
+		\includegraphics[width=\textwidth]{figures/gunet.png}
+		\caption{Visualization of the graph U-nets architecture\cite{graph-u-net}}
+	\end{figure}
+	
+	Graph pooling layers enable downsampling on graphs by adaptively selecting nodes to build a smaller graph from existing nodes, while preserving edges. The selection method is similar to a traditional $k$-max pooling: the highest $k$ values are preserved after the operation. The top $k$ nodes are selected based on a learned 1D projection, to a vector $\textbf{p}$:
+	
+	
+	$$ y_i = x_i\textbf{p}/||\textbf{p}||, $$
+	
+	the nodes are kept which retain most of their information when projected to \textbf{p}. After the selection has been made, the adjacency matrix is updated to only include these nodes and the corresponding rows are extracted from the feature matrix via a gate operation, using matrix multiplication and a sigmoid operation, which makes p trainable by backpropagation.
+	
+	
+	The unpooling layer, unlike image upsampling layers, can only work in connection with a graph pooling layer for which it performs an opposite action: the adjacency matrix is restored to its state prior to the the pooling layer and the node feature matrix is distributed into a shape corresponding to this larger number of nodes, having zero values for newly reappearing nodes.
+	
+	The graph U-net used in our model is a modified version of the architecture proposed in \cite{graph-u-net}. The connectome is used as the adjacency matrix in the U-net, the connectivity values between ROIs are the weights of edges in the graph. 
+	
+	Since we have singular ROI values available for each of the nodes these were distributed along an identity matrix to create a better node feature input for the network, and since the U-net requires symmetry and we will be looking to generate both connectomes and ROI values, the full input is the concatenation of the ROI filled identity matrix and the connectome. 
+	
+	In this case, since the connectomes are $42 \times 42$, the input of this part of the network is batch size $\times 42 \times 84$.
+	
+	
+	The model has the same number of blocks in both directions, comprised of one GCN layer and one graph pooling layer in the down direction and one graph unpooling layer and one GCN layer in the up direction, with a connecting bottom GCN layer. 
+	
+	Corresponding blocks of the same size are connected via skip connections. Conditioning (with the main concern being time conditioning) is applied at every block by calculating scale and shift vectors via a small MLP.
+	
+	
+	The output of the last block is thus the same size as the input of the first one and it gets separated into node features that are used for ROI values calculation and node features that are used for connectome calculation. The ones used for ROIs are sent through a final GCN layer where they are reduced to single value per node and then distributed along an identity matrix to preserve the symmetry of the data. 
+	
+	For the connectome however, as each value represents an edge between two regions, the other half of the output gets pairwise concatenated and passed through an MLP to determine one value per edge for the connectome.
+	
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=\textwidth]{figures/own_gunet.png}
+		\caption{Visualization of the graph U-net architecture, focusing on the flow of data}
+	\end{figure}
+	
+	
+	\subsubsection{Experiments}
+	
+	To find out which choices work best for the model, there were multiple experiments with various architecture and parameter ideas. This was mainly focused on the graph U-net, as it is the central part of the architecture. The VAE remained largely the same, with only minor changes to accommodate the conditioned training and sampling.
+
+	Since this kind of graph U-net and diffusion architecture does not show up in literature often, experiments were done to try and figure out which setups would lead to better generation results in the end. There were wide variety of options to try and the lack of guidance on which ones could be successful in which combination meant trying out new ideas in a fail fast method would be best: the results of the model were inspected after a set number of epochs and if the connectome visually worsened that method could be avoided in the future.
+	
+	Since the base output of the model is just node features and there are various methods to convert them into edge predictions\cite{li2023evaluating} we had to try a few to see what would work well with the model. In the implementation of the graph U-net we included a switch that
+	can take None, ’scalar’ and ’mlp’ values and makes experimenting with this easier. The
+	None value keeps the original vector of the output, without any transformations applied.
+	In this setting the network tries to learn the noise/denoised values as if they were features
+	of the nodes. This is the easiest method to implement but this way it is not taken into
+	consideration how each edge represents the connection between two edges.
+	To better accomplish this, the ’scalar’ method takes each resulting node embedding and
+	computes the scalar product of each node pair to build the new matrix. In case of the
+	’mlp’ option the node embedding get pairwise concatenated to represent their respective
+	edges, and then are passed through a small MLP to calculate an edge strength for the
+	pair of nodes. Here the concatenation makes sure that both nodes are considered in the
+	calculation.
+	In the final version we ended up using the MLP to calculate the connectome as it yielded
+	better results than the base method and with the scalar product approach we discovered
+	that it led to generated samples looking almost identical.
+	4.4.1.2 Class Conditioning
+	As mentioned before in Section 2.5.2, introducing a class conditioning in a DDPMs can
+	give a significant boost to their performance. Since our dataset had labels in the form of
+	the body part corresponding to each sample that the subject was instructed to imagine
+	raising, we could try this method in our model as well. We implemented a very simple
+	version of this by extending the diffusion package we used with the class conditioning
+	being passed to the U-net and in the GNN concatenated the one-hot vector representing
+	the class to the time conditioning to execute both kinds at once.
+	Sadly this implementation did not result in improved performance, the resulting generated
+	samples tended to have prominent bands of a single value instead of resembling the input
+	connectomes. We have not yet found the reason for this development and we believe it still
+	might be a good idea to further experiment with conditioning, perhaps trying to create a
+	more refined implementation.
+	4.4.1.3 Loss Calculation
+	Since the connectome is supposed to be a symmetric matrix, we tried changing the graph Unet’s loss function to reflect this in some form. We implemented a version of loss calculation
+	where only the lower triangle matrix of both the result and target were considered during
+	calculation: keeping the generation of the upper half as a sanity check, but concentrating
+	on the lower half. This did not noticeably impact the resulting generated samples, so we
+	opted for removing it, choosing to keep the model simpler if possible.
+	20
+	
 	\subsection{Results}
+	
+	Evaluating image synthesis tasks requires multiple different approaches. For one, quantitative metrics like Fréchet Inception Distance[19] (FID), Peak Signal to Noise Ratio[21]
+	(PSNR), and Structural Similarity Index Measure[21] (SSIM) are key to obtaining an objective view of the quality of the generated samples. On the other hand, especially in
+	image synthesis tasks, qualitative evaluation is important to assess the visual quality of
+	the samples, as numerical measurements don’t always align with visual representations.
+	FID uses an InceptionV3 network to calculate the distance between the extracted features
+	of real and generated samples, PSNR measures the ratio of the signal (i.e., the important parts of the image) and noise in the reconstructed image, and SSIM, unlike PSNR,
+	measures not the pixel values, but structural aspects of the samples.
+	
+	As the numerical metrics show, our model fails to produce any meaningful results with
+	the VAE conditioned by the generated ROIs and connectomes. However, these metrics are
+	not an accurate representation of our results. For that we need to look at some generated
+	samples.
 	
 	\subsection{Conclusions}
 
