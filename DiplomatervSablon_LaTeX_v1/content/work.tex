@@ -195,60 +195,102 @@
 	
 	To find out which choices work best for the model, there were multiple experiments with various architecture and parameter ideas. This was mainly focused on the graph U-net, as it is the central part of the architecture. The VAE remained largely the same, with only minor changes to accommodate the conditioned training and sampling.
 
-	Since this kind of graph U-net and diffusion architecture does not show up in literature often, experiments were done to try and figure out which setups would lead to better generation results in the end. There were wide variety of options to try and the lack of guidance on which ones could be successful in which combination meant trying out new ideas in a fail fast method would be best: the results of the model were inspected after a set number of epochs and if the connectome visually worsened that method could be avoided in the future.
+	\textbf{Graph U-net} Since this kind of graph U-net and diffusion architecture does not show up in literature often, experiments were done to try and figure out which setups would lead to better generation results in the end. There were wide variety of options to try and the lack of guidance on which ones could be successful in which combination meant trying out new ideas in a fail fast method would be best: the results of the model were inspected after a set number of epochs and if the connectome visually worsened that method could be avoided in the future.
 	
-	Since the base output of the model is just node features and there are various methods to convert them into edge predictions\cite{li2023evaluating} we had to try a few to see what would work well with the model. In the implementation of the graph U-net we included a switch that
-	can take None, ’scalar’ and ’mlp’ values and makes experimenting with this easier. The
-	None value keeps the original vector of the output, without any transformations applied.
-	In this setting the network tries to learn the noise/denoised values as if they were features
-	of the nodes. This is the easiest method to implement but this way it is not taken into
-	consideration how each edge represents the connection between two edges.
-	To better accomplish this, the ’scalar’ method takes each resulting node embedding and
-	computes the scalar product of each node pair to build the new matrix. In case of the
-	’mlp’ option the node embedding get pairwise concatenated to represent their respective
-	edges, and then are passed through a small MLP to calculate an edge strength for the
-	pair of nodes. Here the concatenation makes sure that both nodes are considered in the
-	calculation.
-	In the final version we ended up using the MLP to calculate the connectome as it yielded
-	better results than the base method and with the scalar product approach we discovered
-	that it led to generated samples looking almost identical.
-	4.4.1.2 Class Conditioning
-	As mentioned before in Section 2.5.2, introducing a class conditioning in a DDPMs can
-	give a significant boost to their performance. Since our dataset had labels in the form of
-	the body part corresponding to each sample that the subject was instructed to imagine
-	raising, we could try this method in our model as well. We implemented a very simple
-	version of this by extending the diffusion package we used with the class conditioning
-	being passed to the U-net and in the GNN concatenated the one-hot vector representing
-	the class to the time conditioning to execute both kinds at once.
-	Sadly this implementation did not result in improved performance, the resulting generated
-	samples tended to have prominent bands of a single value instead of resembling the input
-	connectomes. We have not yet found the reason for this development and we believe it still
-	might be a good idea to further experiment with conditioning, perhaps trying to create a
-	more refined implementation.
-	4.4.1.3 Loss Calculation
-	Since the connectome is supposed to be a symmetric matrix, we tried changing the graph Unet’s loss function to reflect this in some form. We implemented a version of loss calculation
-	where only the lower triangle matrix of both the result and target were considered during
-	calculation: keeping the generation of the upper half as a sanity check, but concentrating
-	on the lower half. This did not noticeably impact the resulting generated samples, so we
-	opted for removing it, choosing to keep the model simpler if possible.
-	20
+	The usual output of a graph u-net is just node features and there are various methods to convert them into edge predictions\cite{li2023evaluating}, therefore it was important try a few to see what would work well with the model. In the implementation of the graph U-net I have included a switch that can take None, ’scalar’ and ’mlp’ values and makes experimenting with this easier. 
+	
+	The None value keeps the original vector of the output, without any transformations applied. In this setting the network tries to learn the noise as if they were features of the nodes, both for ROI values and edge weights. This is the easiest method to implement but this way it is not taken into consideration how each edge represents the connection between two nodes.
+	
+	To better represent the way a connection is formed between two nodes, the ’scalar’ method takes each resulting node embedding and computes the scalar product of each node pair to build the new adjacency/edge weight matrix. In case of the ’mlp’ option the node embeddings get pairwise concatenated to represent their respective edges, and then are passed through a small MLP to calculate an edge strength for the pair of nodes. Here the concatenation makes sure that both nodes are considered together in the calculation.
+	
+	
+	The most usable and best performant solution for calculating the connectome ended up being the MLP, as it yielded better results than the base method and the scalar product approach seemed to lead to generated samples looking almost identical.
+	
+	
+	\textbf{Class conditioning} Conditional diffusion models enable generating images with specific features. In case of class conditioning the model is tasked with generating a sample from a category from a list that is already known ahead of time. This can be achieved by passing an embedding of the class labels to the noise predicting network. This approach guides the model to learn the different characteristics of each class, which usually leads to better overall image quality. It also grants the ability to generate images for specific classes, which is especially useful in the medical domain.
+	
+	Since the used dataset has labels in form of the body part corresponding to the performed task, it was possible to add this technique into the model. A very simple implementation of this was constructed, by passing the class label to the U-net, where it was turned into a one-hot vector and concatenated to the time conditioning to perform both at once.
+	
+	Unfortunately this implementation did not result in improved performance, the resulting generated samples tended to have prominent bands of a single value instead of resembling the original samples. It could still be a good idea to further experiment with class conditioning, perhaps with a different implementation method. 
+	
+	Since the connectome is supposed to be a symmetric matrix, the graph U-net’s loss function could be changed in some way to reflect this in some form. A version of loss calculation was tried out, where only the lower triangle matrix of both the result and target were considered during calculation: keeping the generation of the upper half as a sanity check, but concentrating on the lower half. This did not noticeably impact the resulting generated samples, so it was removed, choosing to keep the model simpler if possible.
+	
+	%TODO ezekhez a dolgokhoz képek?
 	
 	\subsection{Results}
 	
-	Evaluating image synthesis tasks requires multiple different approaches. For one, quantitative metrics like Fréchet Inception Distance[19] (FID), Peak Signal to Noise Ratio[21]
-	(PSNR), and Structural Similarity Index Measure[21] (SSIM) are key to obtaining an objective view of the quality of the generated samples. On the other hand, especially in
-	image synthesis tasks, qualitative evaluation is important to assess the visual quality of
-	the samples, as numerical measurements don’t always align with visual representations.
-	FID uses an InceptionV3 network to calculate the distance between the extracted features
-	of real and generated samples, PSNR measures the ratio of the signal (i.e., the important parts of the image) and noise in the reconstructed image, and SSIM, unlike PSNR,
-	measures not the pixel values, but structural aspects of the samples.
+	To evaluate image generation tasks, it is best to use multiple different approaches. On one hand, quantitative metrics like Fréchet Inception Distance\cite{heusel2017gans} (FID), Peak Signal to Noise Ratio\cite{hore2010image} (PSNR), and Structural Similarity Index Measure\cite{hore2010image} (SSIM) are important to obtaining an objective view of the quality of the generated images. On the other hand, especially in image synthesis tasks, qualitative evaluation is important to assess the visual quality of the samples, as numerical measurements don’t always align with visual representations.
 	
-	As the numerical metrics show, our model fails to produce any meaningful results with
-	the VAE conditioned by the generated ROIs and connectomes. However, these metrics are
-	not an accurate representation of our results. For that we need to look at some generated
-	samples.
+	
+	FID uses an InceptionV3\cite{szegedy2016rethinking} network to calculate the distance between the extracted features of real and generated samples, PSNR measures the ratio of the signal (i.e., the important parts of the image) and noise in the reconstructed image, and SSIM, unlike PSNR, measures not the pixel values, but structural aspects of the samples.
+	
+	As a baseline, we can compare these metrics to those measured on a pixel-based 3D DDPM architecture\cite{diff_pixel}:
+	
+	\begin{table}[!h]
+		\begin{center}
+			\begin{tabular}{lccc}
+				\toprule
+				Method & FID & PSNR & SSIM \\
+				\midrule
+				Ours & 400.8233 & 13.4702 & 0.0535 \\
+				Pixel-based & 20.4152 & 27.5278 & 0.8442\\
+				\bottomrule
+			\end{tabular}
+		\end{center}
+		\caption{Comparison of results on quantitative metrics between our method and a pixel-based DDPM method.}
+	\end{table}
+	
+	From these numerical metrics it is obvious that the results of the architecture are not comparable to the results achieved by using the diffusion to generate the fMRI sample directly. 
+	
+	\begin{figure}[!h]
+		\label{fig:vae-samples}
+		\centering
+		\begin{subfigure}[b]{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figures/bad-vae-sample.png}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}[b]{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figures/good-vae-sample.jpeg}
+		\end{subfigure}
+		\caption{Samples from the VAE, on the left a sample generated by the decoder conditioned by generated ROIs, on the right a sample generated during a validation epoch.}
+	\end{figure}
+	
+	
+	As it can be seen on Figure \ref{fig:vae-samples}, the trained VAE was capable of generating reasonably good samples in validation epochs when conditioned with one of the original connectomes. It has some artifacting and small chunks outside of the brain, but it looks very similar to the input images. The left sample however, the one conditioned by synthetic data is very noisy and does not resemble samples from the training dataset. This comparison points to our generated ROIs having the opposite of the desired effect, as they completely destroy the image.
 	
 	\subsection{Conclusions}
+	
+	To understand the poor performance of image generation, we have to examine the results of the connectome and ROI value generation. The training of the model was very unstable, often devolving into a mass of low and high values in various patterns (as seen on Figures ) %TODO ideref
+	This has become worse in later epochs, as the model could produce promising results after ~20 epochs of training, as seen on Figure \ref{fig:roi-samples}. 
+	
+	Overall, this seems to suggest that there is potential for good outcomes in the model architecture but there is some sort of numerical or gradient instability that causes it not to converge. This is backed up by how the loss behaves during training. It can be seen on Figure %TODO idref
+	that while the loss initially drops many orders of magnitude at the start of training, after zooming in it is obvious that the loss still jumps around and does not actually converge.
+	
+	\begin{figure}[!h]
+		\centering
+		\label{fig:roi-samples}
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figures/training-roi.png}
+		\end{subfigure}
+		\hspace{-1em}
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figures/training-connectome.png}
+		\end{subfigure}
+		\par\bigskip
+		\begin{subfigure}[b]{0.8\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figures/good-roi-sample.png}
+		\end{subfigure}
+		\caption{On the bottom is one of the better samples generated by the model, and on the top a sample from the training dataset. ROIs are on the left and connectomes are on the right.}
+	\end{figure}
+	
+	While the network is not capable of generating consistently good, novel samples in its current state, there is reason to believe that with the right adjustments this architecture could be capable of learning meaningful representations of the data. Other than this, this idea is a great step in resource intensiveness. It has about 80\% less parameters than a pixel-based diffusion model using 3D-Unet would. It also decouples the diffusion process from the slower, more costly pixel-based VAE, which enables rapid experimentation: once trained, a VAE can be used to test out many GNN models.
+	
+	
 
 \section{Minimising device-to-device differences}
 
