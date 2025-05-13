@@ -5,21 +5,26 @@ import torch
 from torch.utils.data import Dataset
 from torch_geometric.data import Data
 from torch_geometric.utils import dense_to_sparse
+from torch.nn.functional import normalize
 
 PREPROCESS_TYPE = f'Outputs/cpac/filt_noglobal/rois_ho'
 ROOT_PATH = f'C:/Users/Anna/Documents/actual_dipterv/data'
 
-def load_site(site, connectome_type='tangent'):
+def load_site(site, connectome_type='correlation'):
     
     autistic = []
     control = []
     for roi_file in os.listdir(f'{ROOT_PATH}/{site}/{PREPROCESS_TYPE}'):
         data = np.loadtxt(f'{ROOT_PATH}/{site}/{PREPROCESS_TYPE}/{roi_file}')
+        data = data - data.mean(axis=0)
+        data = data / (data.std(axis=0) + 1e-8)  # Avoid division by zero
         data = torch.tensor(data)
         autistic.append(data.T)
 
     for roi_file in os.listdir(f'{ROOT_PATH}/{site}_control/{PREPROCESS_TYPE}'):
         data = np.loadtxt(f'{ROOT_PATH}/{site}_control/{PREPROCESS_TYPE}/{roi_file}')
+        data = data - data.mean(axis=0)
+        data = data / (data.std(axis=0) + 1e-8)  # Avoid division by zero
         data = torch.tensor(data)
         control.append(data.T)
 
@@ -75,7 +80,7 @@ class AutismDataset(Dataset):
         return self.length
 
     def __getitem__(self, idx):
-        adj = self.connectomes[idx]
+        adj = self.connectomes[idx].clamp(0, 1)
         edge_index, edge_weight = dense_to_sparse(adj)
         x = self.node_features[idx]
         y = torch.tensor(self.labels[idx])
