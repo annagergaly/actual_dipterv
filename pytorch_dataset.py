@@ -70,6 +70,8 @@ class AutismDataset(Dataset):
                 self.node_features = [torch.diag_embed(torch.min(sample, dim=1, dtype=torch.float)) for sample in self.roi_timeseries]
             case 'identity':
                 self.node_features = [torch.eye(sample.shape[0], dtype=torch.float) for sample in self.roi_timeseries]
+            case 'correlation':
+                self.node_features = self.connectomes
         self.num_node_features = self.roi_timeseries[0].shape[0]
         self.num_classes = 2
         self.num_nodes = self.connectomes[0].shape[0]
