@@ -40,6 +40,7 @@ print("CUDA!!!!!!!!!!!!!!", torch.cuda.is_available())
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
 # dataset = torch_geometric.datasets.NeuroGraphDataset(root='pyG', name='HCPGender')
+# dataset = pytorch_dataset.AutismDataset(['NYU', 'USM', 'UM_1'], node_features='correlation', connectome_type='correlation')
 dataset = pytorch_dataset.AutismDataset(['NYU'], node_features='correlation', connectome_type='correlation')
 train_dataset, test_dataset = torch.utils.data.random_split(dataset, [0.8, 0.2])
 train_dataloader = DataLoader(train_dataset, 1, True)
@@ -49,7 +50,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=5e-4)
 
 
 model.train()
-for epoch in tqdm(range(1, 101)):
+for epoch in tqdm(range(1, 51)):
     for data in train_dataloader:
         optimizer.zero_grad()
         data = data.to(device)

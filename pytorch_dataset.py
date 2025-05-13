@@ -39,7 +39,8 @@ def load_site(site, connectome_type='correlation'):
     return (autistic, control, autistic_connectomes, control_connectomes)
 
 class AutismDataset(Dataset):
-    def __init__(self, sites, connectome_type='tangent', node_features='average'):
+    def __init__(self, sites, connectome_type='correlation', node_features='correlation', top_edges=5):
+        self.top_edges = top_edges
         self.roi_timeseries = []
         self.node_features = []
         self.connectomes = []
@@ -82,7 +83,9 @@ class AutismDataset(Dataset):
         return self.length
 
     def __getitem__(self, idx):
+        threshold = torch.quantile(self.connectomes[idx], (100-self.top_edges)/100)
         adj = self.connectomes[idx].clamp(0, 1)
+        adj[adj < threshold] = 0
         edge_index, edge_weight = dense_to_sparse(adj)
         x = self.node_features[idx]
         y = torch.tensor(self.labels[idx])
