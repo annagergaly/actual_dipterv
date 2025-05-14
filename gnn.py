@@ -7,8 +7,39 @@ import torch_geometric.nn
 from tqdm import tqdm
 import pytorch_dataset
 from torch_geometric.loader import DataLoader
+import wandb
 
 NUM_NODES = 111
+torch.random.manual_seed(42)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(42)
+wandb.init(project="dipterv", entity="anna", name="gcn_autism", config = {
+    "sites": ['NYU'],
+})
+
+sweep_config = {
+    'method': 'random',
+    'metric': {
+        'goal': 'maximize',
+        'name': 'accuracy'
+    },
+    'parameters': {
+        'learning_rate': {
+            'values': [0.0001, 0.001, 0.01]
+        },
+        'epochs': {
+            'values': [50, 100]
+        },
+        'batch_size': {
+            'values': [1, 4, 8]
+        },
+        'top_edges': {
+            'values': [5, 10, 20]
+        }
+    }
+}
+sweep_id = wandb.sweep(sweep_config, project="dipterv")
+
 
 class GCNModel(nn.Module):
     def __init__(self, num_node_features):
@@ -35,40 +66,44 @@ class GCNModel(nn.Module):
 
         return F.sigmoid(x)
     
-
-print("CUDA!!!!!!!!!!!!!!", torch.cuda.is_available())
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
 # dataset = torch_geometric.datasets.NeuroGraphDataset(root='pyG', name='HCPGender')
 # dataset = pytorch_dataset.AutismDataset(['NYU', 'USM', 'UM_1'], node_features='correlation', connectome_type='correlation')
-dataset = pytorch_dataset.AutismDataset(['NYU'], node_features='correlation', connectome_type='correlation')
-train_dataset, test_dataset = torch.utils.data.random_split(dataset, [0.8, 0.2])
-train_dataloader = DataLoader(train_dataset, 1, True)
-test_dataloader = DataLoader(test_dataset, 1, True)
-model = GCNModel(dataset.num_node_features).to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=5e-4)
 
+def main():
+    run = wandb.init()
+    dataset = pytorch_dataset.AutismDataset(['NYU'], node_features='correlation', connectome_type='correlation')
+    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [0.8, 0.2])
+    train_dataloader = DataLoader(train_dataset, 1, True)
+    test_dataloader = DataLoader(test_dataset, 1, True)
+    model = GCNModel(dataset.num_node_features).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=5e-4)
 
-model.train()
-for epoch in tqdm(range(1, 51)):
-    for data in train_dataloader:
-        optimizer.zero_grad()
+    model.train()
+    for epoch in tqdm(range(1, 51)):
+        for data in train_dataloader:
+            optimizer.zero_grad()
+            data = data.to(device)
+            out = model(data)
+            out = out.squeeze(0)
+            #print(out, data.y.float())
+            loss = F.binary_cross_entropy(out, data.y.float())
+            loss.backward()
+            optimizer.step()
+
+    correct = 0
+    model.eval()
+    for data in test_dataloader:
         data = data.to(device)
         out = model(data)
-        out = out.squeeze(0)
-        #print(out, data.y.float())
-        loss = F.binary_cross_entropy(out, data.y.float())
-        loss.backward()
-        optimizer.step()
+        pred = out.round()
+        correct += (pred == data.y.float())
+        print(out.squeeze(0), data.y.float())
 
-correct = 0
-model.eval()
-for data in test_dataloader:
-    data = data.to(device)
-    out = model(data)
-    pred = out.round()
-    correct += (pred == data.y.float())
-    print(out.squeeze(0), data.y.float())
+    acc = int(correct) / len(test_dataloader.dataset)
+    print(f'Accuracy: {acc:.4f}')
 
-acc = int(correct) / len(test_dataloader.dataset)
-print(f'Accuracy: {acc:.4f}')
+
+
+wandb.agent(sweep_id, function=main, count=30)
