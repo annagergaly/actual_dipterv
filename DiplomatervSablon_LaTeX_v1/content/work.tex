@@ -10,15 +10,12 @@
 	\subsection{Dataset}
 	\label{sec:ABIDE}
 	
-	%TODO find citation og ABIDE
-	The ABIDE (Autism Brain Imaging Data Exchange) dataset focuses on the furthering research into ASD (autism spectrum disorder) through neuro-imaging and neuroscience. The dataset contains in total 1112 resting state fMRIs of subjects both with ASD (539 individuals) and typically developing controls (573 individuals). 
+	The ABIDE (Autism Brain Imaging Data Exchange) dataset\cite{di2014autism} focuses on the furthering research into ASD (Autism Spectrum Disorder) through neuro-imaging and neuroscience. The dataset contains in total 1112 resting state fMRIs of subjects both with ASD (539 individuals) and typically developing controls (573 individuals). 
 	
 	The imaging data has been collected by 16 institutions, who collaborated to create a publicly accessible anonymised dataset to allow the broader scientific community to take part in ASD related research while preserving the privacy of the participants. As such, datasets do not contain any protected health information. 
 	
-	%TODO cite preprocessed 
-	Since fMRI preprocessing techniques are very complex image processing operations and heavily resource intensive, an initiative also formed to provide a preprocessed version of the dataset. 
-	
-	Since there is not a widely accepted best practice method for preprocessing fMRI images, the participating five teams have all used their preferred methods to clean the data. The participants have also provided a ROI activation timeseries calculated using 7 different brain atlases from each type of the preprocess method. 
+	%TODO ezt a részt rendberakni, itt specifically az FC mátrixokat használtam
+	Since fMRI preprocessing techniques are very complex image processing operations and heavily resource intensive, an initiative also formed to provide a preprocessed version of the dataset. At this point I was not comfortable with taking on the connectome extraction process and so following \cite{wang2021graph} and using the already preprocessed FC matrices they provided.
 	
 	The very close ratio of affected vs control subjects (539 to 573) means the dataset is well-balanced in terms of a classification task on the diagnosis of subjects. 
 	
@@ -315,7 +312,7 @@
 		\hfill
 		\begin{subfigure}[b]{0.45\textwidth}
 			\centering
-			\includegraphics[width=\textwidth]{figures/step-loss.jpeg}
+			\includegraphics[width=\textwidth]{figures/step-loss.png}
 		\end{subfigure}
 		\caption{Loss during training.}
 		\label{fig:loss}
@@ -329,9 +326,19 @@
 
 	\subsection{Dataset}
 	
-	For this experiment I used the ABIDE dataset (same as in Section \ref{sec:ABIDE}) 
+	My experiments were conducted on the ABIDE dataset\cite{di2014autism} (same as in Section \ref{sec:ABIDE}). More specifically to avoid costly preprocessing steps, but to able to be keep in control of the connectomes and other facets of the resulting data, I turned to the Preprocessed Connectomes Project (PCP) initiative's ABIDE preprocessed dataset\cite{craddock2013neuro}.
+	
+	Since there is not a widely accepted best practice method for preprocessing fMRI images, the participating five teams have all used their preferred methods to clean the data and various derivatives of this process are downloadable from the provided Amazon S3 bucket. From my perspective, the most important of these is the ROI activation timeseries: for each preprocess method, the resulting preprocessed scans were segmented using 7 different brain atlases. 
+	
+	I built the used dataset from these activation timeseries using methods outlined in a paper about the NeuroGraph dataset\cite{said2023neurograph}. In this paper researchers argue that the reason applying GNNs in the neuroimaging domain has been so challenging is the expansive number of different preprocessing pipelines and the large parameter search space. To counteract this problem, they benchmarked various representations with the most commonly used GNN architectures to offer guidance for dataset construction.
+	
+	For their experiments they used the HCP dataset (See Section \ref{sec:HCP}) and constructed five different tasks, each with corresponding datasets with different parameters. Through their benchmarking efforts they have found that a larger number of regions of interests, creating sparser graphs and using the correlation matrix as node features leads the best results across tasks and network types. This is invaluable information for further research and it would have been very beneficial, had I known about it in previous endeavours.
+	
+	For the construction of this dataset, I have followed these suggestions. First the timeseries needed to be normalized to a zero mean and unit variance for each subject individually. With the help of nilearn, the correlation was used to create graph structure and the node features. For the graph structure, only edges running between nodes with a positive correlation were kept and a hyperparameter was introduced to keep only the top $n\%$ of edges with the highest correlation leading to sparser graphs. For edge features the original correlation matrix was kept.
 	
 	\subsection{Methodology}
+	
+	In the ABIDE preprocessed dataset samples are also categorized by the performing institution. To better understand the impact of the specific machine used on the data, in this experiment I have used a few of the most numerous sites to create a 
 	
 	\subsection{Results}
 	
