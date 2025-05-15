@@ -5,7 +5,7 @@
 \chapter{Methods and Implementation}
 %----------------------------------------------------------------------------
 
-\section{Graph Neural Networks on Connectomes}
+\section{Graph Neural Networks on a Group FC matrix}
 
 	\subsection{Dataset}
 	\label{sec:ABIDE}
@@ -14,17 +14,35 @@
 	
 	The imaging data has been collected by 16 institutions, who collaborated to create a publicly accessible anonymised dataset to allow the broader scientific community to take part in ASD related research while preserving the privacy of the participants. As such, datasets do not contain any protected health information. 
 	
-	%TODO ezt a részt rendberakni, itt specifically az FC mátrixokat használtam
-	Since fMRI preprocessing techniques are very complex image processing operations and heavily resource intensive, an initiative also formed to provide a preprocessed version of the dataset. At this point I was not comfortable with taking on the connectome extraction process and so following \cite{wang2021graph} and using the already preprocessed FC matrices they provided.
+	Since fMRI preprocessing techniques are very complex image processing operations and heavily resource intensive, an initiative also formed to provide a preprocessed version of the dataset. At this point I was not comfortable with taking on the connectome extraction process and so following \cite{wang2021graph}, their already preprocessed FC matrix was utilized. 
+	
+	These connectome matrices were extracted by first using the Craddock200 atlas and using their average correlation. After this a $k$-NN graph was constructed, keeping only the top $k$ edges for any given node, resulting in a sparser graph and creating a hyperparameter that can tune graph density.
+	
+	%TODO ez így nem igazán jó
 	
 	The very close ratio of affected vs control subjects (539 to 573) means the dataset is well-balanced in terms of a classification task on the diagnosis of subjects. 
 	
 	\subsection{Methodology}
-	In the paper \cite{wang2021graph} by Wang et al. researchers worked with the ABIDE dataset to create a graph convolutional network based architecture for predicting the diagnosis of a patient based on the resting state fMRI. 
+	In the paper \cite{wang2021graph} by Wang et al. researchers worked with the ABIDE dataset to create a graph convolutional network based architecture for predicting the diagnosis of a patient based on the resting state fMRI. Their model 
+	
+	
 	
 	\subsection{Results}
 	
-	\subsection{Conclusions}
+	\begin{figure}[!h]
+		\centering
+		\begin{subfigure}[b]{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figures/onlab_results.png}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}[b]{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figures/paper_results.png}
+		\end{subfigure}
+		\caption{Tenfold crossvalidation results from my model (left) and the cGCN model from \cite{wang2021graph} (right)}
+		\label{fig:onlab_results}
+	\end{figure}
 
 \section{Connectome-based diffusion}
 \label{sec:diffusion}
@@ -326,7 +344,7 @@
 
 	\subsection{Dataset}
 	
-	My experiments were conducted on the ABIDE dataset\cite{di2014autism} (same as in Section \ref{sec:ABIDE}). More specifically to avoid costly preprocessing steps, but to able to be keep in control of the connectomes and other facets of the resulting data, I turned to the Preprocessed Connectomes Project (PCP) initiative's ABIDE preprocessed dataset\cite{craddock2013neuro}.
+	My experiments were conducted on the ABIDE dataset\cite{di2014autism} (same as in Section \ref{sec:ABIDE}). More specifically to avoid costly preprocessing steps, but to be able to be keep in control of the connectomes and other facets of the resulting data, I turned to the Preprocessed Connectomes Project (PCP) initiative's ABIDE preprocessed dataset\cite{craddock2013neuro}.
 	
 	Since there is not a widely accepted best practice method for preprocessing fMRI images, the participating five teams have all used their preferred methods to clean the data and various derivatives of this process are downloadable from the provided Amazon S3 bucket. From my perspective, the most important of these is the ROI activation timeseries: for each preprocess method, the resulting preprocessed scans were segmented using 7 different brain atlases. 
 	
@@ -338,8 +356,25 @@
 	
 	\subsection{Methodology}
 	
-	In the ABIDE preprocessed dataset samples are also categorized by the performing institution. To better understand the impact of the specific machine used on the data, in this experiment I have used a few of the most numerous sites to create a 
+	In the ABIDE preprocessed dataset samples are also categorized by the performing institution. To better understand the impact of the specific machine being used on the data, in this experiment I have used the most numerous sites to create a dataset that focuses not only predicting diagnoses, but also on this aspect. As it is visible on Figure \ref{fig:distribution}, there are only a few sites that have a considerable amount of samples on their own. The decision was to use the ones with over 100 samples: NYU (NYU Langone Medical Center), UM\_1 (University of Michigan: Sample 1) and USM (University of Utah School of Medicine).
+	
+	\begin{figure}[!h]
+		\centering
+		\label{fig:distribution}
+		\includegraphics[width=0.8\textwidth]{figures/ABIDE-sites.jpg}
+		\caption{The distribution of capturing site within the ABIDE dataset.}
+	\end{figure}
+	
+	%TODO írni a modellről
+	In creating a model for this task, the guidance from \cite{said2023neurograph} was followed similarly as to before. This study found that residual- (or skip-) connections play a pivotal role in enhancing the performance of brain networks.
+	
+	The tests were performed using the three institutions' samples: on one hand, with each of the three sets separately and together with the test set randomly separated from the train set, on the other hand with a leave-one-out method. In the latter, one of the sites is left out of the training set and kept exclusively for testing: this can be a good way to measure how effectively the model can learn patterns that are also applicable in data from previously unseen sites.
 	
 	\subsection{Results}
 	
+	
+	
 	\subsection{Conclusions}
+	
+	
+	

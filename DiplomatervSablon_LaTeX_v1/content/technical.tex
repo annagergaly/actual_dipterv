@@ -7,6 +7,7 @@
 
 	In my work I used the Python programming language both for implementing machine learning solutions and for creating pipelines; downloading, sorting and preparing data, as well as various scripting needs. For running deep learning tasks I have employed the Google Colab\footnote{\url{https://colab.research.google.com/}}, an online compute platform that lets users run Jupyter notebooks with limitations, one of my own laptops, equipped with an Nvidia GTX 1050Ti portable, and for the particularly resource intensive diffusion task\ref{sec:diffusion} I have received help from a corporate compute cluster.
 	
+	In this chapter I detail the frameworks and packages used in my work, as well as the technical aspects of using and preprocessing fMRI data. 
 	%TODO használt verziók valami appendixben?
 
 \section{Used Frameworks and Packages}
@@ -38,6 +39,8 @@
 	XGBoost (eXtreme Gradient Boosting) is a gradient boosting library that provides a well optimized and very performant gradient boosting machine implementation.
 	
 	Denoising-diffusion-pytorch is a package commonly used for experimenting and training diffusion models. It provides an easy interface to train diffusion models with custom networks and enables easy DDIM sampling.
+	
+	Weights \& Biases (WandB) is a library designed to track machine learning work. By integrating WandB into a project the results of a run can be tracked and hyperparameter sweeps can be ran.
 	
 	
 	\subsection{Supporting packages}
