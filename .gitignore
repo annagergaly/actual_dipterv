@@ -9,7 +9,7 @@ venv.bak/
 
 .git-credentials
 
-
+wandb/
 data/
 .vscode/
 .python-version
