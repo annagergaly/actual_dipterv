@@ -5,6 +5,31 @@
 \chapter{Introduction}
 %----------------------------------------------------------------------------
 
+Graph Neural Networks (GNNs) are an area of machine learning that is fairly new, but gained a lot of popularity in the last few years. The reason for their increasing popularity can be found in the increased need for artificial intelligence to handle graph datasets: many phenomena can be captured as graphs well, things with complex structures, or cases where connections between items are important. However, common machine learning techniques are not well-suited for the internal complexity and variability of graphs. 
+
+These models have proven to be able capture complex connectivity patterns within graphs and have been found useful in many fields, from recommender systems to the medical domain. A lot of these architectures were created mirroring Convolutional Neural Networks (CNNs), which work on strict grid formats and extrapolate the idea of convolutions to a non-Euclidian form. 
+
+There are earlier examples of graph methods as well, from classical mathematical algorithms to random-walk based models. Graph Convolutional Networks (GCNs) are capable of providing a computationally simple way of using convolutional layers on graph data, allowing for architectures that are capable of processing large amounts of data and slotting into backpropagation-based deep learning architectures. GCNs and most modern architectures fit into a message passing principle: information is aggregated in nodes as their neighbours pass messages in.
+
+The collection of medical data has been incredibly important in the work physicians for a very long time, but in the era of modern medicine its importance has become ever greater. Modern sensors and imaging devices, as well as statistical methods have made it so that the collection of medical data is faster and more accurate than ever, and this data is also more valuable than ever. 
+
+Of course this data collection is not entirely without drawbacks: it is a very hard task to keep the incredibly personal and sensitive data of patients safe and to obtain and use such data completely ethically and in line with the pertinent regulations. Such concerns are doubly interesting in machine learning research applications: these methods are known to be data-hungry, requiring at least hundreds of samples, which are often not feasible to collect in controlled studies and have to be obtained in other ways.
+
+This need for data is ubiquitous in the deep learning world, but in cases where the data is naturally occurring (such as general text or RGB images) it is generally not as big of a problem. In case of medical imaging data however, due to the aforementioned data privacy issues and the proportional rarity of data and the associated costs mean that the data hunger is much harder to satiate. This scarcity makes the use of data augmentation techniques that much more needed in this domain, but this poses its own set of challenges: traditional image augmentation techniques are often not as successful in this domain, due to the unique properties of medical images\cite{garcea2023data}. 
+
+This means that solutions tailor-made to this type of task are necessary to achieve the best results. One of the methods where this can be done is synthetic data generation, where the already existing samples are used to inform a model of the properties and distribution of the dataset and this model is tasked with generating entirely novel samples based on this base set. I examined one such solution for brain fMRI scans together with Levente Sipos in our joint Scientific Students’ Association Report\cite{tdk}. In this thesis I will be detailing my work pertaining to the project, while also giving background information and explaining the goal and overarching approach of the project (See Section \ref{sec:diffusion}).
+
+MRI (Magnetic Resonance Imagining) is a tool commonly used by physicians to see inside the human body in a non-invasive way, due to its ability to capture even soft tissues at a high-resolution and the lack of ionising radiation, which makes its repeated use in patients possible. One of the organs commonly examined via MRI is the brain: this can be done via an fMRI (functional Magnetic Resonance Imagining) for example. fMRIs show insight into the workings of the human brain, by providing detailed images of the oxigenated blood flow in the brain, which correlates with the neuronal activity. fMRIs are commonly taken either for a longer time with a lack of external stimulus (rs-fMRI, resting state fMRI) or specifically to examine the reaction to stimulus or the completion of a task (task based fMRI).
+
+Machine learning provides valuable tools for the analysis of functional neuroimaging data, being effective in predicting neurological conditions, psychiatric disorders or cognitive patterns. There are limitations to using CNNs for this task however. It is very computationally intensive to process the 3 or 4 (accounting for time) dimensional data and brain activity is not well localized for this within the scan: most of it occurs in the cortical and subcortical structures and regions close in Euclidian space are often not the ones that need to be considered together.
+
+Looking to better understand fMRI data, scans can be segmented into brain regions to reduce spatial complexity and noise. The segmentation occurs along brain atlases: these outline certain Regions of Interest (ROIs) that have a similar function or are likely to be activated together. There are many atlases available that have been constructed with different methodologies and lead to different results from the same scan. Typically the activation of these regions are averaged and this can be used create a timeseries of average activation for each ROI for the duration of the scan. These average activation values are often referred to as ROI values or BOLD (Blood-Oxygen Level Dependent) signals.
+
+%TODO connectome (FC mátrix) dolgok
+
+%TODO hogyan jön be a GNN
+
+  
 
 \section{Structure}
 

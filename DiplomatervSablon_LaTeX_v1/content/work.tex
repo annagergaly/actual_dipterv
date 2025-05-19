@@ -14,18 +14,33 @@
 	
 	The imaging data has been collected by 16 institutions, who collaborated to create a publicly accessible anonymised dataset to allow the broader scientific community to take part in ASD related research while preserving the privacy of the participants. As such, datasets do not contain any protected health information. 
 	
-	Since fMRI preprocessing techniques are very complex image processing operations and heavily resource intensive, an initiative also formed to provide a preprocessed version of the dataset. At this point I was not comfortable with taking on the connectome extraction process and so following \cite{wang2021graph}, their already preprocessed FC matrix was utilized. 
+	Since fMRI preprocessing techniques are very complex image processing operations and heavily resource intensive, an initiative also formed to provide a preprocessed version of the dataset. At this point I was not comfortable with taking on the connectome extraction process and so following \cite{wang2021graph}, their already preprocessed group FC matrix was utilized. 
 	
-	These connectome matrices were extracted by first using the Craddock200 atlas and using their average correlation. After this a $k$-NN graph was constructed, keeping only the top $k$ edges for any given node, resulting in a sparser graph and creating a hyperparameter that can tune graph density.
+	This matrix was extracted by first using the Craddock200 atlas and using their average correlation. After this a $k$-NN graph was constructed, keeping only the top $k$ edges for any given node, resulting in a sparser graph and creating a hyperparameter that can tune graph density.
 	
-	%TODO ez így nem igazán jó
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=0.8\textwidth]{figures/cgcn.png}
+		\caption{The used model architecture in \cite{wang2021graph}}
+	\end{figure}
+	
+	In their work they used this same graph for all subjects and all time frames, created only using training data. For the node features they used the activation levels of the corresponding to the ROIs and built a complex model that works with the temporally changing nature of the fMRI. 
+	
 	
 	The very close ratio of affected vs control subjects (539 to 573) means the dataset is well-balanced in terms of a classification task on the diagnosis of subjects. 
 	
 	\subsection{Methodology}
 	In the paper \cite{wang2021graph} by Wang et al. researchers worked with the ABIDE dataset to create a graph convolutional network based architecture for predicting the diagnosis of a patient based on the resting state fMRI. Their model 
 	
+	%TODO ezt rendbetenni valahogy
 	
+	 Convolutional layers were used to extract information from the neighbouring nodes with skip connections. Outputs from these convolutional layers were followed by an RNN (Recurrent Neural Network) layer to combine spatial representations from all frames.
+	
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=0.8\textwidth]{figures/onlab_abra.png}
+		\caption{My own model for this task}
+	\end{figure}
 	
 	\subsection{Results}
 	
