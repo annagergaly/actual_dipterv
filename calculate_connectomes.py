@@ -26,19 +26,29 @@ def load_site(site):
         control_file_names.append(roi_file[:-3])
         control.append(data)
 
-    print(autistic[0].shape)
+    for i in range(len(control)):
+        sample = control[i]
+        print(sample.shape[0], control_file_names[i], "control")
+
+    for i in range(len(autistic)):
+        sample = autistic[i]
+        print(sample.shape[0], autistic_file_names[i], "autistic")
+    print(site, autistic[0].shape)
     autistic = np.stack(autistic)
     control = np.stack(control)
     return (autistic, autistic_file_names, control, control_file_names)
 
 if __name__ == '__main__':
-    site = 'UM_1'
-    (autistic, a_files, control, c_files) = load_site(site)
-    estimator = connectome.ConnectivityMeasure(kind='correlation')
+    sites = ["PITT", "OLIN", "OHSU", "SDSU", "TRINITY", "UM_2", "YALE", "CMU", "LEUVEN_1", "LEUVEN_2", "KKI", "STANFORD", "UCLA_1", "UCLA_2", "MAX_MUN", "CALTECH", "SBL"]
+    # sites = ["CMU"]
 
-    autistic_connectomes = estimator.fit_transform(autistic)
-    control_connectomes = estimator.fit_transform(control)
+    for site in sites:
+        (autistic, a_files, control, c_files) = load_site(site)
+        estimator = connectome.ConnectivityMeasure(kind='correlation')
 
-    np.save(f'{ROOT_PATH}/{site}/connectomes_correlation', autistic_connectomes)
-    np.save(f'{ROOT_PATH}/{site}_control/connectomes_correlation', control_connectomes)
+        autistic_connectomes = estimator.fit_transform(autistic)
+        control_connectomes = estimator.fit_transform(control)
+
+        np.save(f'{ROOT_PATH}/{site}/connectomes_correlation', autistic_connectomes)
+        np.save(f'{ROOT_PATH}/{site}_control/connectomes_correlation', control_connectomes)
 

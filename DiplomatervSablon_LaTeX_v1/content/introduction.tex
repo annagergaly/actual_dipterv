@@ -25,11 +25,11 @@ Machine learning provides valuable tools for the analysis of functional neuroima
 
 Looking to better understand fMRI data, scans can be segmented into brain regions to reduce spatial complexity and noise. The segmentation occurs along brain atlases: these outline certain Regions of Interest (ROIs) that have a similar function or are likely to be activated together. There are many atlases available that have been constructed with different methodologies and lead to different results from the same scan. Typically the activation of these regions are averaged and this can be used create a timeseries of average activation for each ROI for the duration of the scan. These average activation values are often referred to as ROI values or BOLD (Blood-Oxygen Level Dependent) signals.
 
-%TODO connectome (FC mátrix) dolgok
+Altogether, these timeseries represent the average activation of a ROI area in the brain at every timestep during the fMRI. Using correlations of these signals can help us determine which regions work together frequently: effectively meaning ROIs with a high correlation are often collaborating/communicating, meaning they are "close" when we consider the functionality of the brain. When assessing the functional qualities of the brain this can be more useful than physical closeness, the attribute a CNN would consider. These correlations can be used to construct a connectome or FC (functional connectivity) matrix that is a sort of brain graph: the vertexes are the ROIs and the correlation values correspond to the edges, stronger if the regions work together.
 
-%TODO hogyan jön be a GNN
+The use of graph neural networks on this connectome may seem straighforward at first glance, but there are major roadblocks. Yet, despite their successes in data interpretation and predictive modeling, the application of these techniques to the neuroimaging domain has been challenging partly due to the expansive parameter search space in the dataset construction. With various preprocessing pipelines, denoising strategies, brain atlases available and options for node features and graph construction parameters it is severely difficult to create datasets that GNNs perform well on, considering that even the network's parameters need to be finetuned.
 
-  
+In my work I explored various use-cases for the use of graph neural networks on connectomes extracted from fMRI scans: predictive and generative tasks, different preprocessing pipelines and examined the effect of different MRI machines in the dataset.
 
 \section{Structure}
 

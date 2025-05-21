@@ -24,25 +24,29 @@
 		\caption{The used model architecture in \cite{wang2021graph}}
 	\end{figure}
 	
-	In their work they used this same graph for all subjects and all time frames, created only using training data. For the node features they used the activation levels of the corresponding to the ROIs and built a complex model that works with the temporally changing nature of the fMRI. 
+	In their work they used this same graph for all subjects and all time frames, created only using training data. For the node features they used the activation levels corresponding to the ROIs and built a complex model that works with the temporally changing nature of the fMRI. 
 	
 	
 	The very close ratio of affected vs control subjects (539 to 573) means the dataset is well-balanced in terms of a classification task on the diagnosis of subjects. 
 	
 	\subsection{Methodology}
-	In the paper \cite{wang2021graph} by Wang et al. researchers worked with the ABIDE dataset to create a graph convolutional network based architecture for predicting the diagnosis of a patient based on the resting state fMRI. Their model 
+	In the paper \cite{wang2021graph} by Wang et al. researchers worked with the ABIDE dataset to create a graph convolutional network based architecture for predicting the diagnosis of a patient based on the resting state fMRI. They also used the same architecture to perform a different task on a different dataset: identification of individuals based on the rs-fMRI.
 	
-	%TODO ezt rendbetenni valahogy
 	
-	 Convolutional layers were used to extract information from the neighbouring nodes with skip connections. Outputs from these convolutional layers were followed by an RNN (Recurrent Neural Network) layer to combine spatial representations from all frames.
+	 In their model convolutional layers were used to extract information from the neighbouring nodes with skip connections. Outputs from these convolutional layers were followed by an RNN (Recurrent Neural Network) layer to combine spatial representations from all frames. 
 	
 	\begin{figure}[!h]
+		\label{fig:onlab}
 		\centering
 		\includegraphics[width=0.8\textwidth]{figures/onlab_abra.png}
 		\caption{My own model for this task}
 	\end{figure}
 	
+	In my model, as seen on Figure \ref{fig:onlab}, I strived to examine how a much simpler model would fare on this dataset compared to the research paper's. I simply used 3 GCN layers with ReLU activation with an averagepooling readout function and sigmoid activation at the end for the binary classification task. To be able to compare the results to the ones presented in the paper I also performed a 10-fold crossvalidation.
+	
 	\subsection{Results}
+	
+	As it is visible on Figure \ref{fig:onlab_results}, my model was less performant than the one presented in the paper. This was to be expected due to the simpler construction. But the difference is 
 	
 	\begin{figure}[!h]
 		\centering

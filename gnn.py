@@ -13,12 +13,14 @@ NUM_NODES = 111
 torch.random.manual_seed(42)
 if torch.cuda.is_available():
     torch.cuda.manual_seed(42)
-wandb.init(project="dipterv", entity="anna-gergaly", name="gcn_autism", config = {
+wandb.init(project="dipterv", entity="anna-gergaly", name="hcp-gender", config = {
     "learning_rate": 0.0001,
     "test_partition": "separate",
 })
+all_sites = ["PITT", "OLIN", "OHSU", "SDSU", "TRINITY", "UM_2", "YALE", "CMU", "LEUVEN_1", "LEUVEN_2", "KKI", "STANFORD", "UCLA_1", "UCLA_2", "MAX_MUN", "CALTECH", "SBL", "NYU", "USM", "UM_1"]
 
 sweep_config = {
+    'name': 'leave_one_out_test',
     'method': 'grid',
     'metric': {
         'goal': 'maximize',
@@ -26,17 +28,14 @@ sweep_config = {
     },
     'parameters': {
         'epochs': {
-            'values': [10, 20, 50]
-        },
-        'batch_size': {
-            'values': [1, 8]
+            'values': [50, 100]
         },
         'top_edges': {
             'values': [5, 10, 20]
         },
-        'dataset': {
-            'values': [['NYU', 'USM', 'UM_1'], ['NYU'], ['USM'], ['UM_1']]
-        }
+        'leave_out': {
+            'values': ["PITT", "YALE", "USM"]
+        },
     }   
 }
 sweep_id = wandb.sweep(sweep_config, project="dipterv")
@@ -100,20 +99,25 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
 # dataset = torch_geometric.datasets.NeuroGraphDataset(root='pyG', name='HCPGender')
 # dataset = pytorch_dataset.AutismDataset(['NYU', 'USM', 'UM_1'], node_features='correlation', connectome_type='correlation')
+# dataset = pytorch_dataset.AutismDataset(wandb.config.dataset, node_features='correlation', connectome_type='correlation', top_edges=wandb.config.top_edges)
 
 def main():
     run = wandb.init()
-    dataset = pytorch_dataset.AutismDataset(wandb.config.dataset, node_features='correlation', connectome_type='correlation', top_edges=wandb.config.top_edges)
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [0.8, 0.2])
-    train_dataloader = DataLoader(train_dataset, wandb.config.batch_size, True, drop_last=True)
-    test_dataloader = DataLoader(test_dataset, wandb.config.batch_size, True, drop_last=True)
+    # dataset = torch_geometric.datasets.NeuroGraphDataset(root='pyG', name='HCPGender')
+    # train_dataset, test_dataset = torch.utils.data.random_split(dataset, [0.8, 0.2])
+    train_sites = all_sites.copy()
+    train_sites.remove(wandb.config.leave_out)
+    dataset = pytorch_dataset.AutismDataset(train_sites, node_features='correlation', connectome_type='correlation', top_edges=wandb.config.top_edges)
+    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [0.8, 0.2])
+    test_dataset = pytorch_dataset.AutismDataset([wandb.config.leave_out], node_features='correlation', connectome_type='correlation', top_edges=wandb.config.top_edges)
+    train_dataloader = DataLoader(train_dataset, 1, True, drop_last=True)
+    test_dataloader = DataLoader(test_dataset, 1, True, drop_last=True)
     model = GCNModel(dataset.num_node_features).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=5e-4)
 
     model.train()
     for epoch in tqdm(range(1, wandb.config.epochs + 1)):
         avg_loss = 0
-        all = 0
         for data in train_dataloader:
             optimizer.zero_grad()
             data = data.to(device)
@@ -122,11 +126,19 @@ def main():
             #print(out, data.y.float())
             loss = F.binary_cross_entropy(out, data.y.float().squeeze())
             avg_loss += loss.sum().item()
-            all += len(data.y)
             wandb.log({"loss": loss})
             loss.backward()
             optimizer.step()
-        avg_loss /= all
+        avg_loss /= len(train_dataloader.dataset)
+        avg_val_loss = 0
+        for data in val_dataset:
+            data = data.to(device)
+            out = model(data)
+            out = out.squeeze()
+            loss = F.binary_cross_entropy(out, data.y.float().squeeze())
+            avg_val_loss += loss.sum().item()
+        avg_val_loss /= len(val_dataset)
+        wandb.log({"avg_val_loss": avg_val_loss})
         wandb.log({"avg_loss": avg_loss})
 
     correct = 0
@@ -144,4 +156,4 @@ def main():
 
 
 
-wandb.agent(sweep_id, function=main, count=100)
+wandb.agent(sweep_id, function=main, count=120)
