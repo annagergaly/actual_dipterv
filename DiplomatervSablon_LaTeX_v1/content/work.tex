@@ -36,17 +36,17 @@
 	 In their model convolutional layers were used to extract information from the neighbouring nodes with skip connections. Outputs from these convolutional layers were followed by an RNN (Recurrent Neural Network) layer to combine spatial representations from all frames. 
 	
 	\begin{figure}[!h]
-		\label{fig:onlab}
 		\centering
 		\includegraphics[width=0.8\textwidth]{figures/onlab_abra.png}
 		\caption{My own model for this task}
+		\label{fig:onlab}
 	\end{figure}
 	
 	In my model, as seen on Figure \ref{fig:onlab}, I strived to examine how a much simpler model would fare on this dataset compared to the research paper's. I simply used 3 GCN layers with ReLU activation with an averagepooling readout function and sigmoid activation at the end for the binary classification task. To be able to compare the results to the ones presented in the paper I also performed a 10-fold crossvalidation.
 	
 	\subsection{Results}
 	
-	As it is visible on Figure \ref{fig:onlab_results}, my model was less performant than the one presented in the paper. This was to be expected due to the simpler construction. But the difference is 
+	As it is visible on Figure \ref{fig:onlab_results}, my model was less performant than the one presented in the paper. This was to be expected due to the simpler construction, but this model comes more close than expected, despite being much simpler and less computationally taxing and not considering timesteps. This is somewhat in line with findings in \cite{said2023neurograph}, where it was found that dynamic datasets (although in that case separate graphs were constructed for time windows) do not offer better performance.
 	
 	\begin{figure}[!h]
 		\centering
@@ -381,19 +381,64 @@
 		\centering
 		\label{fig:distribution}
 		\includegraphics[width=0.8\textwidth]{figures/ABIDE-sites.jpg}
-		\caption{The distribution of capturing site within the ABIDE dataset.}
+		\caption{The distribution of capturing site within the ABIDE dataset, according to the summary spreadsheet.}
 	\end{figure}
 	
-	%TODO írni a modellről
-	In creating a model for this task, the guidance from \cite{said2023neurograph} was followed similarly as to before. This study found that residual- (or skip-) connections play a pivotal role in enhancing the performance of brain networks.
+	%TODO ábrát csinálni a modellről
+	In creating a model for this task, the guidance from \cite{said2023neurograph} was followed similarly as to before. This study found that residual- (or skip-) connections play a pivotal role in enhancing the performance of brain networks. My model features 3 GCN layers with ReLU activation and residual connections after each layer, which are then all subjected to averagepooling and then concatenated. I have also employed dropout between layers and used Kaiming-He uniform weight initialization\cite{he2015delving}. The output from this is then fed through two fully connected layers in a similar fashion and finally a sigmoid activation is applied for the binary classification task. 
 	
-	The tests were performed using the three institutions' samples: on one hand, with each of the three sets separately and together with the test set randomly separated from the train set, on the other hand with a leave-one-out method. In the latter, one of the sites is left out of the training set and kept exclusively for testing: this can be a good way to measure how effectively the model can learn patterns that are also applicable in data from previously unseen sites.
+	For loss, the matching binary cross entropy was utilized and the ADAM optimizer\cite{kingma2014adam}. I have used a set seed in pytorch to make sure the experiments are repeatable. I added the WandB library to the project and used it both for experimenting with hyperparameters to narrow the search space and find better setups and to conveniently run my experiments.
+	
+	The tests were performed using the three institutions' samples: on one hand, with each of the three sets separately and together with the test set randomly separated from the train set, on the other hand with a leave-one-out method. In the latter, one of the sites is left out of the training set and kept exclusively for testing: this can be a good way to measure how effectively the model can learn patterns that are also applicable in data from previously unseen sites, how good it is at generalizing when taking into account device-to-device differences.
+	
+	As mentioned before, my original plan was to the three most populous sites from the dataset to examine the individual, combined and leave-one-out results and compare them, to get a sense for how a different measuring device impacts the impact the classification performance. I was unable to realize the plan in this capacity however, as the model would not converge and produced wildly varying results on different seeds and settings. 
+	
+	I ran testruns using WandB, where I tried a few different values for parameters in the individual and combined dataset scenarios. As it can be seen on Figure \ref{fig:3site_runs}, the accuracy on the test set was in a lot of cases not really higher than random chance and showed very wide variance, showing significant instability in the training process.
+	
+	\begin{figure}[!h]
+		\centering
+		\label{fig:3site_runs}
+		\includegraphics[width=0.8\textwidth]{figures/3site_runs.jpg}
+		\caption{Visualization of the accuracy on the test set using the first iteration of the ABIDE dataset, separated for batch size of 1 and 8}
+	\end{figure}
+	
+	I tested the model with the NeuroGraphDataset\cite{said2023neurograph}, to see if the problem was with the model or with dataset. The model performed well in that case and I have settled on the problem being that there is simply not enough samples in for the model to train effectively on just those three sites combined, let alone on a single one of these sites. The NeuroGraphDataset has 1,078 graphs, while these have a bit more than 100 each. Tests on this dataset have also shown that the model does significantly better with a batch size of 1, so going forward test were run with this parameter.
+	
+	\begin{figure}[!h]
+		\centering
+		\label{fig:neurograph}
+		\includegraphics[width=0.8\textwidth]{figures/ng_accuracy.png}
+		\caption{Visualization of the accuracy on the test set using the NeuroGraphDataset, separated for batch size of 1 and 8}
+	\end{figure}
+	
+	Initial tests of using the entire ABIDE dataset seemed much more promising, so I decided on running the experiment by including all sites and verifying the model in a leave-one-out way to still be able to find answers to the original question. I separated the data from the rest of the sites into a training and validation set and kept remaining set as the test set.
 	
 	\subsection{Results}
 	
-	
+
+
+
+
+
+
+
+
+
 	
 	\subsection{Conclusions}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	

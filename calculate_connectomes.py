@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-PREPROCESS_TYPE = f'Outputs/cpac/filt_noglobal/rois_ho'
+PREPROCESS_TYPE = f'Outputs/cpac/filt_noglobal/rois_cc400'
 ROOT_PATH = f'C:/Users/Anna/Documents/actual_dipterv/data'
 
 
@@ -49,6 +49,6 @@ if __name__ == '__main__':
         autistic_connectomes = estimator.fit_transform(autistic)
         control_connectomes = estimator.fit_transform(control)
 
-        np.save(f'{ROOT_PATH}/{site}/connectomes_correlation', autistic_connectomes)
-        np.save(f'{ROOT_PATH}/{site}_control/connectomes_correlation', control_connectomes)
+        np.save(f'{ROOT_PATH}/{site}/connectomes_correlation_cc400', autistic_connectomes)
+        np.save(f'{ROOT_PATH}/{site}_control/connectomes_correlation_cc400', control_connectomes)
 

@@ -28,10 +28,10 @@ sweep_config = {
     },
     'parameters': {
         'epochs': {
-            'values': [50, 100]
+            'values': [50]
         },
         'top_edges': {
-            'values': [5, 10, 20]
+            'values': [5, 10]
         },
         'leave_out': {
             'values': ["PITT", "YALE", "USM"]
@@ -45,15 +45,15 @@ class GCNModel(nn.Module):
     def __init__(self, num_node_features):
         super(GCNModel, self).__init__()
         self.conv1 = torch_geometric.nn.GCNConv(num_node_features, 64)
-        torch.nn.init.xavier_uniform_(self.conv1.lin.weight)
+        torch.nn.init.kaiming_uniform_(self.conv1.lin.weight)
         self.conv2 = torch_geometric.nn.GCNConv(64, 32)
-        torch.nn.init.xavier_uniform_(self.conv2.lin.weight)
+        torch.nn.init.kaiming_uniform_(self.conv2.lin.weight)
         self.conv3 = torch_geometric.nn.GCNConv(32, 16)
-        torch.nn.init.xavier_uniform_(self.conv3.lin.weight)
+        torch.nn.init.kaiming_uniform_(self.conv3.lin.weight)
         self.fully_connected = nn.Linear((NUM_NODES + 64 + 32 + 16), 64)
-        torch.nn.init.xavier_uniform_(self.fully_connected.weight)
+        torch.nn.init.kaiming_uniform_(self.fully_connected.weight)
         self.fully_connected2 = nn.Linear(64, 1)
-        torch.nn.init.xavier_uniform_(self.fully_connected2.weight)
+        torch.nn.init.kaiming_uniform_(self.fully_connected2.weight)
         self.multi_aggr = torch_geometric.nn.aggr.MeanAggregation()
         self.batch_norm = torch_geometric.nn.BatchNorm((NUM_NODES + 64 + 32 + 16))
 
