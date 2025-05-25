@@ -8,8 +8,13 @@
 %----------------------------------------------------------------------------
 \chapter*{Kivonat}\addcontentsline{toc}{chapter}{Kivonat}
 
-Jelen dokumentum egy diplomaterv sablon, amely formai keretet ad a BME Villamosmérnöki és Informatikai Karán végző hallgatók által elkészítendő szakdolgozatnak és diplomatervnek. A sablon használata opcionális. Ez a sablon \LaTeX~alapú, a \emph{TeXLive} \TeX-implementációval és a PDF-\LaTeX~fordítóval működőképes.
+A mélytanulás az elmúlt időszakban nagyon hasznos eszköznek bizonyult különböző tudományterületeken és a népszerűsége robbanásszerűen megnőtt. Míg az átlag emberek sokszor leginkább az LLM-re vagy chatbotokra gondolnak a mesterséges intelligencia hallatán, addig tudományos alkalmazási körökben gyakran specifikus feladatokra betanított modellek vezetnek nagyon jó eredményekre. Többek között az orvosi területen is fontos szerepet tölt be: orvosi képelemzésen keresztül megkönnyíti a diagnózisok felállítását és gyógyszerkutatások elősegítésén keresztül hozzájárul a betegek jobb kezeléséhez.
 
+Az MRI az egyik legnépszerűbb és legismertebb orvosi képalkotó eszköz. Egyik altípusa, az fMRI az agyi aktivitás rögzítésére alkalmas, érzékeli az oxigéndús vér jelenlétét az agyszövetben. Az így készült felvételek elemzésére több módszer is alkalmas, az egyik ilyen módszer az agy funkcionálisan elkülönülő területekre, ROI-kra (regions of interest) szegmentálása és egyfajta agyi gráf felépítése a régiók együttműködése alapján.
+
+Az orvosi adatokkal való munka azonban nem mindig egyszerű: mivel ezeket a drága műszerekkel, specializált környezetben gyűjtik, sokkal nehezebben hozzáférhetőek, mint például az egyszerű szöveges adatok vagy az általános képek. A másik korlátozó tényező az ilyen adatok érzékeny jellege. Az adatvédelmi irányelveket és előírásokat be kell tartani, és a legtöbb adathalmazt anonimizálják, mielőtt hozzáférhetővé válnak.
+
+Munkám során az fMRI-felvételekből létrehozott agyi gráfokat gráf neurális hálózatokkal elemzem a neurodivergencia és kognitív feladatok felismeréséhez. Ezek a modellek lehetőséget kínálnak a mélytanulás gráfokon történő alkalmazására, és bizonyítottan képesek kiemelkedő eredményeket elérni komplex belső szerkezetű adatokon. Megvizsgálom, hogy az adatok szűkössége és a különböző helyekről összevont adathalmazok hogyan hatnak az fMRI-kutatásra, és lehetséges megoldásokat keresek.
 
 \vfill
 \selectenglish
@@ -20,8 +25,13 @@ Jelen dokumentum egy diplomaterv sablon, amely formai keretet ad a BME Villamosm
 %----------------------------------------------------------------------------
 \chapter*{Abstract}\addcontentsline{toc}{chapter}{Abstract}
 
-This document is a \LaTeX-based skeleton for BSc/MSc~theses of students at the Electrical Engineering and Informatics Faculty, Budapest University of Technology and Economics. The usage of this skeleton is optional. It has been tested with the \emph{TeXLive} \TeX~implementation, and it requires the PDF-\LaTeX~compiler.
+Deep learning has been a very useful tool in various sciences in the last few years and as a result it exploded in popularity. While a lot of people often mostly associate LLMs and chatbots with artificial intelligence, tailor-made machine learning solutions applicable to only their narrowly defined task have been quietly advancing science in the background. One of the domains embracing deep learning has been the medical domain: from streamlining diagnosis through medical image analysis to pioneering new treatments through enhanced drug discovery methods, machine learning has contributed to improving patient outcomes.
 
+One of the most popular and well known medical imaging devices is the MRI. One of it's subtypes, the fMRI is capable of capturing activity in the brain by detecting the flow of oxygenated blood through brain tissue. These scans can be analyzed in many ways, but one of them involves segmenting the brain into functionally distinct areas, ROIs (regions of interest) and building a sort of brain graph based on the interactions of these regions. 
+
+Working with medical data is not always easy however: since it is collected in highly specialized environments with expensive equipment, it is much more scarce than for example simple textual data or general images. The other limiting factor is the sensitive nature of such data. Data protection guidelines and regulations need to be respected and most datasets are anonymised before becoming accessible.
+
+In my work I employ Graph Neural Networks in brain graphs created from fMRI scans for both neurodivergency detection and task prediction. These models were offer the possibility of using deep learning on graphs and have demonstrated their ability to yield outstanding results on data with a complex inner structure. I explore the way data scarcity and datasets pooled from different sites impact fMRI research and look for potential solutions.
 
 \vfill
 \selectthesislanguage

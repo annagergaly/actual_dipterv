@@ -7,4 +7,14 @@
 
 \section{Summary}
 
+
+
 \section{Future work}
+
+As continuation of this work I'd like to revisit the connectome based diffusion project and apply the things I have learnt while working on the device-to-device differences project. Since the paper about benchmarking optimal preprocessing of fMRI for use with graph neural networks\cite{said2023neurograph} became available too late to be used in this project, many of the preprocessing steps have been suboptimal: using the mean ROI values for the node features instead of correlation and not taking care to make the graph more sparse by thresholding correlations.
+
+By preparing the dataset in a more favourable way and setting up a similar WandB sweeping system to try out both model and preprocessing parameters it may be possible to stabilize the training loop of the graph U-net and generate good novel samples. Since the graph part of the net can be trained separately, this possibly would not take a lot of computational resources.
+
+Following the device-to-device differences project, it would be beneficial to use the information gathered about how this impacts models to devise a method to counteract these differences. If all of the samples could be translated to a uniform space, it could be easier for a network to effectively work on them and produce better classification results.
+
+%TODO amelyik ötleteket nem csinálom meg lehetne még ide írni róla

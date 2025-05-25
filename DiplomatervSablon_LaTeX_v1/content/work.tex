@@ -373,6 +373,8 @@
 	
 	For the construction of this dataset, I have followed these suggestions. First the timeseries needed to be normalized to a zero mean and unit variance for each subject individually. With the help of nilearn, the correlation was used to create graph structure and the node features. For the graph structure, only edges running between nodes with a positive correlation were kept and a hyperparameter was introduced to keep only the top $n\%$ of edges with the highest correlation leading to sparser graphs. For edge features the original correlation matrix was kept.
 	
+	In \cite{said2023neurograph} researchers tested three different sizes of the Schaefer atlases\cite{schaefer2018local}, with 100, 400 and 1000 ROIs and the results indicated better model performance on the larger graphs created using the 1000 regions. Since the preprocessed dataset did not carry timeseries created with this type of atlas, I opted to try two of the available atlases, the Harvard-Oxford atlas\cite{desikan2006automated} with 111 ROIs and the Craddock 400 atlas\cite{craddock2012whole} with 392 ROIs. Just based on these numbers, I had a general expectation to see the second one perform better, but the atlases were created with significantly differing methodologies and often it is hard to predict what works better with a given dataset.
+	
 	\subsection{Methodology}
 	
 	In the ABIDE preprocessed dataset samples are also categorized by the performing institution. To better understand the impact of the specific machine being used on the data, in this experiment I have used the most numerous sites to create a dataset that focuses not only predicting diagnoses, but also on this aspect. As it is visible on Figure \ref{fig:distribution}, there are only a few sites that have a considerable amount of samples on their own. The decision was to use the ones with over 100 samples: NYU (NYU Langone Medical Center), UM\_1 (University of Michigan: Sample 1) and USM (University of Utah School of Medicine).
@@ -384,8 +386,14 @@
 		\caption{The distribution of capturing site within the ABIDE dataset, according to the summary spreadsheet.}
 	\end{figure}
 	
-	%TODO ábrát csinálni a modellről
 	In creating a model for this task, the guidance from \cite{said2023neurograph} was followed similarly as to before. This study found that residual- (or skip-) connections play a pivotal role in enhancing the performance of brain networks. My model features 3 GCN layers with ReLU activation and residual connections after each layer, which are then all subjected to averagepooling and then concatenated. I have also employed dropout between layers and used Kaiming-He uniform weight initialization\cite{he2015delving}. The output from this is then fed through two fully connected layers in a similar fashion and finally a sigmoid activation is applied for the binary classification task. 
+	
+	\begin{figure}[!h]
+		\centering
+		\label{fig:model}
+		\includegraphics[width=\textwidth]{figures/model.png}
+		\caption{Visualization of my used model architecture}
+	\end{figure}
 	
 	For loss, the matching binary cross entropy was utilized and the ADAM optimizer\cite{kingma2014adam}. I have used a set seed in pytorch to make sure the experiments are repeatable. I added the WandB library to the project and used it both for experimenting with hyperparameters to narrow the search space and find better setups and to conveniently run my experiments.
 	
@@ -395,31 +403,76 @@
 	
 	I ran testruns using WandB, where I tried a few different values for parameters in the individual and combined dataset scenarios. As it can be seen on Figure \ref{fig:3site_runs}, the accuracy on the test set was in a lot of cases not really higher than random chance and showed very wide variance, showing significant instability in the training process.
 	
+
+	
 	\begin{figure}[!h]
 		\centering
-		\label{fig:3site_runs}
-		\includegraphics[width=0.8\textwidth]{figures/3site_runs.jpg}
-		\caption{Visualization of the accuracy on the test set using the first iteration of the ABIDE dataset, separated for batch size of 1 and 8}
+		\begin{subfigure}[b]{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figures/3site_runs.jpg}
+			\caption{Visualization of the accuracy on the test set using the first iteration of the ABIDE dataset, separated for batch size of 1 and 8}
+			\label{fig:3site_runs}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}[b]{0.50\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figures/ng_accuracy.png}
+			\caption{Visualization of the accuracy on the test set using the NeuroGraphDataset, separated for batch size of 1 and 8}
+			\label{fig:neurograph}
+		\end{subfigure}
 	\end{figure}
 	
 	I tested the model with the NeuroGraphDataset\cite{said2023neurograph}, to see if the problem was with the model or with dataset. The model performed well in that case and I have settled on the problem being that there is simply not enough samples in for the model to train effectively on just those three sites combined, let alone on a single one of these sites. The NeuroGraphDataset has 1,078 graphs, while these have a bit more than 100 each. Tests on this dataset have also shown that the model does significantly better with a batch size of 1, so going forward test were run with this parameter.
 	
+	Initial tests of using the entire ABIDE dataset seemed much more promising, so I decided on running the experiment by including all sites and verifying the model in a leave-one-out way to still be able to find answers to the original question. I separated the data from the rest of the sites into a training and validation set and kept remaining set as the test set. These results would be compared to each other and to the results on a site-wise mixed and randomly into training, validation and test separated run.
+	
 	\begin{figure}[!h]
 		\centering
-		\label{fig:neurograph}
-		\includegraphics[width=0.8\textwidth]{figures/ng_accuracy.png}
-		\caption{Visualization of the accuracy on the test set using the NeuroGraphDataset, separated for batch size of 1 and 8}
+		\label{fig:final_distribution}
+		\includegraphics[width=0.8\textwidth]{figures/abide_samples.png}
+		\caption{The distribution of capturing site within the ABIDE dataset, stacked columns representing the used ASD and control samples, line representing the supposed total number of samples according to the spreadsheet.}
 	\end{figure}
 	
-	Initial tests of using the entire ABIDE dataset seemed much more promising, so I decided on running the experiment by including all sites and verifying the model in a leave-one-out way to still be able to find answers to the original question. I separated the data from the rest of the sites into a training and validation set and kept remaining set as the test set.
+	The final distribution of samples among sites was in the end not exactly the same as the spreadsheet results have suggested. There were some missing files, it was suggested not to use samples where the functional image's mean framewise displacement is above 0.2 and some of the timeseries had be deleted due to uneven lengths. The final distribution compared to the original information can be seen on Figure \ref{fig:final_distribution}. In line with this, to keep the results more representative, I decided to exclude sites from the leave-one-out scheme where there were an outlying number of samples: CMU only had 3, NYU had 171 and UM\_1 82.
 	
 	\subsection{Results}
 	
+	
+	\subsubsection{Full dataset results}
+	
+	\begin{figure}[!h]
+		\centering
+		\begin{subfigure}[b]{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figures/all_atlas.png}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}[b]{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figures/all_epochs.png}
+		\end{subfigure}
+		\caption{Accuracy in the randomly separated full dataset. On the right grouped by used brain atlas, on the left by number of training epochs}
+		\label{fig:full_dataset}
+	\end{figure}
+	
 
+	\subsubsection{Leave-one-out results}
 
-
-
-
+	
+	\begin{figure}[!h]
+		\centering
+		\begin{subfigure}[b]{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figures/fkr.png}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}[b]{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figures/skr.png}
+		\end{subfigure}
+		\caption{Accuracy in the leave-one-out scenario}
+		\label{fig:leave_out}
+	\end{figure}
 
 
 

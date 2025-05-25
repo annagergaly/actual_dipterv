@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-PREPROCESS_TYPE = f'Outputs/cpac/filt_noglobal/rois_cc400'
+PREPROCESS_TYPE = f'Outputs/cpac/filt_noglobal/rois_ho'
 ROOT_PATH = f'C:/Users/Anna/Documents/actual_dipterv/data'
 
 
@@ -39,8 +39,7 @@ def load_site(site):
     return (autistic, autistic_file_names, control, control_file_names)
 
 if __name__ == '__main__':
-    sites = ["PITT", "OLIN", "OHSU", "SDSU", "TRINITY", "UM_2", "YALE", "CMU", "LEUVEN_1", "LEUVEN_2", "KKI", "STANFORD", "UCLA_1", "UCLA_2", "MAX_MUN", "CALTECH", "SBL"]
-    # sites = ["CMU"]
+    sites = ["PITT", "OLIN", "OHSU", "SDSU", "TRINITY", "UM_2", "YALE", "CMU", "LEUVEN_1", "LEUVEN_2", "KKI", "STANFORD", "UCLA_1", "UCLA_2", "MAX_MUN", "CALTECH", "SBL", "USM", "NYU", "UM_1"]
 
     for site in sites:
         (autistic, a_files, control, c_files) = load_site(site)
@@ -49,6 +48,6 @@ if __name__ == '__main__':
         autistic_connectomes = estimator.fit_transform(autistic)
         control_connectomes = estimator.fit_transform(control)
 
-        np.save(f'{ROOT_PATH}/{site}/connectomes_correlation_cc400', autistic_connectomes)
-        np.save(f'{ROOT_PATH}/{site}_control/connectomes_correlation_cc400', control_connectomes)
+        np.save(f'{ROOT_PATH}/{site}/connectomes_correlation_ho', autistic_connectomes)
+        np.save(f'{ROOT_PATH}/{site}_control/connectomes_correlation_ho', control_connectomes)
 
