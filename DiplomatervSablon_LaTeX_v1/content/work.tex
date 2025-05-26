@@ -10,18 +10,18 @@
 	\subsection{Dataset}
 	\label{sec:ABIDE}
 	
-	The ABIDE (Autism Brain Imaging Data Exchange) dataset\cite{di2014autism} focuses on the furthering research into ASD (Autism Spectrum Disorder) through neuro-imaging and neuroscience. The dataset contains in total 1112 resting state fMRIs of subjects both with ASD (539 individuals) and typically developing controls (573 individuals). 
+	The ABIDE (Autism Brain Imaging Data Exchange) dataset \cite{di2014autism} focuses on the furthering research into ASD (Autism Spectrum Disorder) through neuro-imaging and neuroscience. The dataset contains in total 1112 resting state fMRIs of subjects both with ASD (539 individuals) and typically developing controls (573 individuals). 
 	
-	The imaging data has been collected by 16 institutions, who collaborated to create a publicly accessible anonymised dataset to allow the broader scientific community to take part in ASD related research while preserving the privacy of the participants. As such, datasets do not contain any protected health information. 
+	The imaging data has been collected by 16 institutions, who collaborated to create a publicly accessible anonymised dataset to allow the broader scientific community to take part in ASD related research while preserving the privacy of the participants. As such, the dataset does not contain any protected health information. 
 	
 	Since fMRI preprocessing techniques are very complex image processing operations and heavily resource intensive, an initiative also formed to provide a preprocessed version of the dataset. At this point I was not comfortable with taking on the connectome extraction process and so following \cite{wang2021graph}, their already preprocessed group FC matrix was utilized. 
 	
-	This matrix was extracted by first using the Craddock200 atlas and using their average correlation. After this a $k$-NN graph was constructed, keeping only the top $k$ edges for any given node, resulting in a sparser graph and creating a hyperparameter that can tune graph density.
+	This matrix was extracted by first using the Craddock200 atlas to receive the ROI time series and using their average correlation to construct the matrix. After this a $k$-NN graph was constructed, keeping only the top $k$ edges for any given node, resulting in a sparser graph and creating a hyperparameter that can tune graph density.
 	
 	\begin{figure}[!h]
 		\centering
 		\includegraphics[width=0.8\textwidth]{figures/cgcn.png}
-		\caption{The used model architecture in \cite{wang2021graph}}
+		\caption{The used model architecture in \cite{wang2021graph}.}
 	\end{figure}
 	
 	In their work they used this same graph for all subjects and all time frames, created only using training data. For the node features they used the activation levels corresponding to the ROIs and built a complex model that works with the temporally changing nature of the fMRI. 
@@ -38,7 +38,7 @@
 	\begin{figure}[!h]
 		\centering
 		\includegraphics[width=0.8\textwidth]{figures/onlab_abra.png}
-		\caption{My own model for this task}
+		\caption{My own model for this task.}
 		\label{fig:onlab}
 	\end{figure}
 	
@@ -59,37 +59,37 @@
 			\centering
 			\includegraphics[width=\textwidth]{figures/paper_results.png}
 		\end{subfigure}
-		\caption{Tenfold crossvalidation results from my model (left) and the cGCN model from \cite{wang2021graph} (right)}
+		\caption{Tenfold crossvalidation results from my model (left) and the cGCN model from \cite{wang2021graph} (right).}
 		\label{fig:onlab_results}
 	\end{figure}
 
 \section{Connectome-based diffusion}
 \label{sec:diffusion}
 	
-	Deep learning methods are generally known for needing a large number of samples to produce the outstanding results they are capable of\cite{alzubaidi2023survey}. When working with naturally occurring data such as text and RGB images this is not quite as large of an issue, however medical
+	Deep learning methods are generally known for needing a large number of samples to produce the outstanding results they are capable of \cite{alzubaidi2023survey}. When working with naturally occurring data such as text and general images this is not quite as large of an issue, however medical
 	imaging data, such MRI and CT scans, poses a problem, as it is much harder to access.
 	
-	In case of fMRI scans this is partly due to the cost associated with the machines and taking scans and the cost of creating high-quality datasets, as they usually require many hours of work by experts in their respective fields. Furthermore, accessing these datasets is difficult due to privacy concerns and the sensitive nature of said data\ref{sec:legal}.
+	In case of fMRI scans this is partly due to the cost associated with the machines and taking scans, and the cost of the many hours of work by experts which is required for creating high-quality datasets. Furthermore, accessing these datasets is difficult due to privacy concerns and the sensitive nature of said data (See Section \ref{sec:legal}).
 
-	Data augmentation techniques can be used to counteract these hurdles, an important one of these is data synthesis, creating entirely new samples based previously collected data. The goal of this project was to generate synthetic three dimensional fMRI brain scans. By employing diffusion generative models it is possible to produce high-fidelity images based on previous scans.
+	Data augmentation techniques can be used to counteract these hurdles. An important one of these is data synthesis; creating entirely new samples based previously collected data. The goal of this project was to generate synthetic three dimensional fMRI brain scans. By employing diffusion generative models it is possible to produce high-fidelity images based on previous scans.
 	
-	Generative models are capable of generating novel samples that they have not seen previously, based on the distribution learned from the training samples. The two types of generative models used in this model are Variational Autoencoders (VAEs) and diffusion models.
+	Generative models are capable of generating novel samples that they have not seen previously, based on the distribution learned from the training samples. The two types of generative models used in this architecture are Variational Autoencoders (VAEs) and diffusion models.
 	
-	Variational Autoencoders combine deep neural networks with probabilistic modelling for image generation\cite{kingma2013auto}. Instead of learning deterministic encoding, like standard autoencoders\cite{bank2023autoencoders}, VAEs learn a probabilistic representation, where the latent space follows a distribution which allows for controlled sampling and generation.
+	Variational Autoencoders combine deep neural networks with probabilistic modelling for image generation \cite{kingma2013auto}. Instead of learning deterministic encoding, like standard autoencoders \cite{bank2023autoencoders}, VAEs learn a probabilistic representation, where the latent space follows a distribution which allows for controlled sampling and generation.
 	
 	A VAE is made up of two parts, an encoder and a decoder. The encoder usually consists of a series of convolutional and pooling layers to downsample the data to create a bottleneck. From this latent space, the decoder works with convolutional and unpooling (upsampling) layers to try and reconstruct the input. 
 	
 	Once trained, the model is capable of generating new samples by sampling from the prior distribution of the latent variable $p(z) = \mathcal{N}(0,I)$ and passing in the sample at the bottleneck to the decoder part of the model.
 	
-	Denoising Diffusion Probabilistic Models take inspiration from thermodynamics (particularly Langevin dynamics\cite{welling2011bayesian}) and instead of generating a sample in one step, they use a process of iterative noising and denoising\cite{ho2020denoising}. These models have become state of the art for various image synthesis tasks, producing high-fidelity results. This does come at a cost though: these models are very computationally expensive, even with further improvements, such as DDIMs (Denoising Diffusion Implicit Models\cite{song2020denoising}).
+	Denoising Diffusion Probabilistic Models take inspiration from thermodynamics (particularly Langevin dynamics \cite{welling2011bayesian}) and instead of generating a sample in one step, they use a process of iterative noising and denoising \cite{ho2020denoising}. These models have become state of the art for various image synthesis tasks, producing high-fidelity results. This does come at a cost though: these models are very computationally expensive, even with further improvements, such as DDIMs (Denoising Diffusion Implicit Models \cite{song2020denoising}).
 	
 	During the forward noising process noise is sampled from a Gaussian distribution and added to the input image according to a noise scheduler. This process is repeated usually hundreds of times as the image shifts to a pure noise version (see Figure \ref{fig:scheduler} for examples) as the time $t$ runs from 0 to $T$.
 	
 	\begin{figure}[!h]
-		\label{fig:scheduler}
 		\centering
 		\includegraphics[width=\textwidth]{figures/scheduler.png}
-		\caption{Linear (top) and cosine (bottom) noise schedulers being applied to an image of a small white dog \cite{nichol2021improved}}
+		\caption{Linear (top) and cosine (bottom) noise schedulers being applied to an image of a small white dog \cite{nichol2021improved}.}
+		\label{fig:scheduler}
 	\end{figure}
 	
 	
@@ -98,7 +98,7 @@
 	\begin{figure}[!h]
 		\centering
 		\includegraphics[width=\textwidth]{figures/diffusion.png}
-		\caption{The forward and backward process of diffusion\cite{ho2020denoising}}
+		\caption{The forward and backward process of diffusion \cite{ho2020denoising}.}
 	\end{figure}
 	
 	
@@ -107,17 +107,17 @@
 	\subsection{Dataset}
 	\label{sec:HCP}
 	
-	The HCP dataset (Human Connectome Project) was collected by WU-Minn HCP consortium. The goal of the human connectome project is to facilitate research into mapping	out the human brain, for this reason the project collected high-quality neuroimaging data (MRI, PET and MEG scans) in various studies targeting a variety of problems: Alzheimer's disease, normal brain development or ageing. In doing so they have not only supplied high quality data for neurological researchers, but also established a protocol for such data collection\cite{van2012human}.
+	The HCP dataset (Human Connectome Project) was collected by WU-Minn HCP consortium. The goal of the human connectome project is to facilitate research into mapping out the human brain; for this reason the project collected high-quality neuroimaging data (MRI, PET and MEG scans) in various studies targeting a variety of problems: Alzheimer's disease, normal brain development or ageing. In doing so, they have not only supplied high quality data for neurological researchers, but also established a protocol for such data collection \cite{van2012human}.
 	
 	One of the collected datasets is HCP Young Adult which has scans of over 1100 healthy young adults for the free use of researchers. The dataset encompasses both resting state and task-based MRIs and was collected by 10 institutions in different parts of the world. 
 	
 	This work focuses on the task-based portion of the dataset, where subjects were instructed to imagine moving various parts of their body while the fMRI took place, creating 5 classes in the data based on the body part - tongue, left and right hand, left and right foot respectively. The data can be downloaded from their ConnectomeDB\footnote{\url{https://db.humanconnectome.org/app/template/Login.vm}} in an already image-wise preprocessed state as well. 
 	
-	Creating an easy to use dataset, where the end user wouldn’t need to have all the necessary medical knowledge and computation power to do the initial, required preprocessing steps was also a focus of the project. For this purpose common automated preprocessing pipelines were created to accomplish low-level tasks, such as surface generation, artefact removal and alignment to standard space\cite{glasser2013minimal}.
+	Creating an easy to use dataset, where the end user would not need to have all the necessary medical knowledge and computation power to do the initial, required preprocessing steps was also a focus of the project. For this purpose common automated preprocessing pipelines were created to accomplish low-level tasks, such as surface generation, artifact removal and alignment to standard space \cite{glasser2013minimal}.
 	
 	\subsection{Methodology}
 	
-	The ROI+connectome representation first has to be extracted from each sample of the dataset and then they are used as the input for the diffusion model. Since the connectome at this point is not an image but rather a sort of brain graph, a decision has been made to create a model different from most DDPMs, by creating a specialized graph U-net, that can serve as the neural network inside the diffusion model that predicts the noise. To do this, I adapted the original graph U-net\cite{graph-u-net} to work in this setting, by adding time and class conditioning and edge prediction techniques.
+	The ROI+connectome representation first has to be extracted from each sample of the dataset and then they are used as the input for the diffusion model. Since the connectome at this point is not an image but rather a sort of brain graph, a decision has been made to create a model different from most DDPMs, by creating a specialized graph U-net, that can serve as the neural network inside the diffusion model that predicts the noise. To do this, I adapted the original graph U-net \cite{graph-u-net} to work in this setting, by adding time and class conditioning and edge prediction techniques.
 	
 	The resulting generated connectomes and ROI values are then used as conditioning in the bottleneck of a VAE, which has been trained to generate MRI scans with the original images of the same dataset, using the original ROI and connectome values as conditioning during training. 
 	
@@ -125,27 +125,25 @@
 	
 	\subsubsection{Data Preprocessing}
 	
-	The architecture requires three separate types of data: the fMRI scan itself and the ROI values and connectomes corresponding to the scan. Of these the HCP dataset only contains the preprocessed fMRI scan, the other two needed to be computed in a preprocessing pipeline\ref{sec:extract}. The ROI values were extracted with the help of an atlas, which describes the regions of the brain corresponding to the ROI values. Since the focus of the project was on sensory motor tasks, therefore we filtered for brain regions activated during these tasks (in practice this means 21 ROIs for each side of the brain, so 42 altogether). 
+	The architecture requires three separate types of data: the fMRI scan itself and the ROI values and connectomes corresponding to the scan. Of these, the HCP dataset only contains the preprocessed fMRI scan, the other two needed to be computed in a preprocessing pipeline (See Section \ref{sec:extract}). The ROI values were extracted with the help of an atlas, which describes the regions of the brain corresponding to the ROI values. Since the focus of the project was on sensory motor tasks, therefore the atlas was filtered for brain regions activated during these tasks (in practice this means 21 ROIs for each side of the brain, so 42 altogether). 
 	
-	With the filtered atlas, a mask can be constructed, to block out unwanted parts of the brain during the extraction. Understanding the format and meaning of the data used in the preprocessing (e.g.: What ROIs and connectomes are and how to calculate them) is difficult as it requires knowledge in the medical domain. 
+	With the filtered atlas, a mask can be constructed to block out unwanted parts of the brain during the extraction. Understanding the format and meaning of the data used in the preprocessing (e.g.: What ROIs and connectomes are and how to calculate them) is difficult as it requires knowledge in the medical domain. 
 	
-	The correct preprocessing was possible thanks to communication from doctors, the documentation of the nilearn package and high-quality HCP dataset. Due to the preprocessing of the dataset, it works best with the Glasser360 brain atlas\cite{sporns2005human}, which was constructed using HCP data and identifies 180+180 (in the left and right hemisphere) regions of interest according to changes in cortical architecture, function, connectivity, and/or topography.
+	The correct preprocessing was possible thanks to communication from doctors though our advisors, the documentation of the nilearn package and high-quality HCP dataset. Due to the preprocessing of the dataset, it works best with the Glasser360 brain atlas \cite{sporns2005human}, which was constructed using HCP data and identifies 180+180 (in the left and right hemisphere) regions of interest according to changes in cortical architecture, function, connectivity, and/or topography.
 
 	\begin{figure}[!h]
 		\centering
 		\includegraphics[width=0.8\textwidth]{figures/atlas.png}
-		\caption{The Glasser360 brain atlas created based on the HCP healthy adults dataset\cite{sporns2005human}}
+		\caption{The Glasser360 brain atlas created based on the HCP healthy adults dataset \cite{sporns2005human}.}
 	\end{figure}
 
-	After the extraction is complete we get a timeseries of ROI values for each patient. This means a tensor of size $284 \times 16 \times 42$, (time $\times$ repeatedMeasurements $\times$ ROIs). To validate the correctness of the preprocessing a Support Vector Machine was used to classify the ROIs based on the performed task. For this the ROI values need to be standardized per subject, and separated by task. For this a Python script from previous works was used that generates a csv file with the times slices and the task performed at that time interval. 
+	After the extraction is complete we get a time series of ROI values for each patient. This means a tensor of size $284 \times 16 \times 42$, (time $\times$ repeatedMeasurements $\times$ ROIs). To validate the correctness of the preprocessing a Support Vector Machine was used to classify the ROIs based on the performed task. The ROI values need to be standardized per subject, and separated by task. For this a Python script from previous works was used that generates a csv file with the times slices and the task performed at that time interval. 
 	
-	This file is essential in separating the relevant parts of the scans from the noise where no task is performed. The scans contain measurements for 5 tasks performed twice, so in to 10 for
-	each patient, with 16 repeated measurements take by the MRI machine (As a further preprocessing step, before the data was used in models the mean value of these 16 steps was taken). This means 124 of the 284 long
-	scan is noise.
+	This file is essential in separating the relevant parts of the scans from the noise where no task is performed. The scans contain measurements for 5 tasks performed twice, so in total 10 for	each patient, with 16 repeated measurements take by the MRI machine (As a further preprocessing step, before the data was used in models the mean value of these 16 steps was taken). This means 124 of the 284 long scan is noise.
 	
 	Once the preprocessing was correct the SVM achieved 90-95\% accuracy on the classification task based on performed tasks. For calculating the connectomes from the ROI values the nilearn package’s ConnectivityMeasure class was used. 
 	
-	The subject-wise calculated ROIs were separated by tasks and connectomes were calculated for each task separately. Since measurements across different tasks are differ significantly, calculating the connectomes with the tasks mixed would not yield meaningful results.
+	The subject-wise calculated ROI values were separated by tasks and connectomes were calculated for each task separately. Since measurements across different tasks are differ significantly, calculating the connectomes with the tasks mixed would not yield meaningful results.
 	
 	\subsubsection{Proposed Architecture}
 	
@@ -154,7 +152,7 @@
 	\begin{figure}[!h]
 		\centering
 		\includegraphics[width=\textwidth]{figures/architecture.png}
-		\caption{Visualization of the model architecture, focusing on the flow of data}
+		\caption{Visualization of the model architecture, focusing on the flow of data.}
 	\end{figure}
 	
 	A big advantage of this model is that the two parts of the model can be trained separately. The autoencoder is trained to be able to reproduce scans with the corresponding connectome. At sampling time  the two models are used in conjunction: the diffusion model generates a connectome and only the decoder part of the autoencoder is used to generate novel samples.
@@ -167,31 +165,31 @@
 	
 	The class was modified in minor ways to fit in with the rest of the codebase and  two major changes had to be made to it. Firstly,  the loss function was recalibrated to enable the model to train on the given dataset. Secondly, it was extended with the capability to condition the bottleneck with the ROI values and connectomes. 
 	
-	For the conditioning a small CNN was implemented with a fully connected layer at the end, that takes the 2 × 42 × 42 size ROI and connectome tensor and creates an embedding with the same size as the bottleneck. The conditioning is then implemented by performing Adaptive Instance Normalization\cite{huang2017arbitrary} on the embedding and the values in the bottleneck.
+	For the conditioning a small CNN was implemented with a fully connected layer at the end, that takes the 2 × 42 × 42 size ROI and connectome tensor and creates an embedding with the same size as the bottleneck. The conditioning is then implemented by performing Adaptive Instance Normalization \cite{huang2017arbitrary} on the embedding and the values in the bottleneck.
 	
 	\subsubsection{Graph U-net}
 	
-	U-nets are a very successful subtype of CNN architectures, originally invented with the purpose of biomedical image segmentation\cite{ronneberger2015u}. It is widely used in segmentation tasks and other cases where the output needs to have the same dimensions as the input, due to its symmetrical nature. This is the same reason why they're commonly used in diffusion models as the noise prediction neural network\cite{ho2020denoising}.
+	U-nets are a very successful subtype of CNN architectures, originally invented with the purpose of biomedical image segmentation \cite{ronneberger2015u}. It is widely used in segmentation tasks and other cases where the output needs to have the same dimensions as the input, due to its symmetrical nature. This is the same reason why they're commonly used in diffusion models as the noise prediction neural network \cite{ho2020denoising}.
 	
 	\begin{figure}[!h]
-		\centering
-		\label{fig:unet}		
+		\centering		
 		\includegraphics[width=\textwidth]{figures/u-net-architecture.png}
-		\caption{Visualisation of the U-net architecture\cite{ronneberger2015u}}
+		\caption{Visualisation of the U-net architecture \cite{ronneberger2015u}.}
+		\label{fig:unet}
 	\end{figure}
 	
 	
 	U-nets are named due to their distinctive architecture: the network consists of a contracting and expansive path, which together form a u-shape (Figure \ref{fig:unet}). The contracting path is a typical CNN with convolutions and max pooling. Conversely the expansive path has upsampling and convolutions, while skip connections are also utilized where dimensions match.
 	
-	Since U-nets have been such a successful model type in convolutional networks, there has been an effort to find an analogue in graph convolutional networks as well. Graph U-nets\cite{graph-u-net} follow the original principles of the U-net architecture: the encoder-decoder structure, the skip connections and the general architecture, as seen on Figure \ref{fig:gunet}. 
+	Since U-nets have been such a successful model type in convolutional networks, there has been an effort to find an analogue in graph convolutional networks as well. Graph U-nets \cite{graph-u-net} follow the original principles of the U-net architecture: the encoder-decoder structure, the skip connections and the general architecture, as seen on Figure \ref{fig:gunet}. 
 	
 	The convolutional layers are replaced by GCN layers and for standard pooling and unpooling layers which do not have an obvious graph equivalent, since they rely on locality in images that is not present in general graphs, novel layers have been developed for graph pooling and unpooling.
 	
 	\begin{figure}[!h]
-		\label{fig:gunet}
 		\centering
 		\includegraphics[width=\textwidth]{figures/gunet.png}
 		\caption{Visualization of the graph U-nets architecture\cite{graph-u-net}}
+		\label{fig:gunet}
 	\end{figure}
 	
 	Graph pooling layers enable downsampling on graphs by adaptively selecting nodes to build a smaller graph from existing nodes, while preserving edges. The selection method is similar to a traditional $k$-max pooling: the highest $k$ values are preserved after the operation. The top $k$ nodes are selected based on a learned 1D projection, to a vector $\textbf{p}$:
@@ -199,7 +197,7 @@
 	
 	$$ y_i = x_i\textbf{p}/||\textbf{p}||, $$
 	
-	the nodes are kept which retain most of their information when projected to \textbf{p}. After the selection has been made, the adjacency matrix is updated to only include these nodes and the corresponding rows are extracted from the feature matrix via a gate operation, using matrix multiplication and a sigmoid operation, which makes p trainable by backpropagation.
+	the nodes are kept which retain most of their information when projected to \textbf{p}. After the selection has been made, the adjacency matrix is updated to only include these nodes and the corresponding rows are extracted from the feature matrix via a gate operation, using matrix multiplication and a sigmoid operation, which makes \textbf{p} trainable by backpropagation.
 	
 	
 	The unpooling layer, unlike image upsampling layers, can only work in connection with a graph pooling layer for which it performs an opposite action: the adjacency matrix is restored to its state prior to the the pooling layer and the node feature matrix is distributed into a shape corresponding to this larger number of nodes, having zero values for newly reappearing nodes.
@@ -233,7 +231,7 @@
 
 	\textbf{Graph U-net} Since this kind of graph U-net and diffusion architecture does not show up in literature often, experiments were done to try and figure out which setups would lead to better generation results in the end. There were wide variety of options to try and the lack of guidance on which ones could be successful in which combination meant trying out new ideas in a fail fast method would be best: the results of the model were inspected after a set number of epochs and if the connectome visually worsened that method could be avoided in the future.
 	
-	The usual output of a graph u-net is just node features and there are various methods to convert them into edge predictions\cite{li2023evaluating}, therefore it was important try a few to see what would work well with the model. In the implementation of the graph U-net I have included a switch that can take None, ’scalar’ and ’mlp’ values and makes experimenting with this easier. 
+	The usual output of a graph u-net is just node features and there are various methods to convert them into edge predictions \cite{li2023evaluating}, therefore it was important try a few to see what would work well with the model. In the implementation of the graph U-net I have included a switch that can take None, ’scalar’ and ’mlp’ values and makes experimenting with this easier. 
 	
 	The None value keeps the original vector of the output, without any transformations applied. In this setting the network tries to learn the noise as if they were features of the nodes, both for ROI values and edge weights. This is the easiest method to implement but this way it is not taken into consideration how each edge represents the connection between two nodes.
 	
@@ -270,12 +268,12 @@
 	
 	\subsection{Results}
 	
-	To evaluate image generation tasks, it is best to use multiple different approaches. On one hand, quantitative metrics like Fréchet Inception Distance\cite{heusel2017gans} (FID), Peak Signal to Noise Ratio\cite{hore2010image} (PSNR), and Structural Similarity Index Measure\cite{hore2010image} (SSIM) are important to obtaining an objective view of the quality of the generated images. On the other hand, especially in image synthesis tasks, qualitative evaluation is important to assess the visual quality of the samples, as numerical measurements don’t always align with visual representations.
+	To evaluate image generation tasks, it is best to use multiple different approaches. On one hand, quantitative metrics like Fréchet Inception Distance \cite{heusel2017gans} (FID), Peak Signal to Noise Ratio \cite{hore2010image} (PSNR), and Structural Similarity Index Measure \cite{hore2010image} (SSIM) are important to obtaining an objective view of the quality of the generated images. On the other hand, especially in image synthesis tasks, qualitative evaluation is important to assess the visual quality of the samples, as numerical measurements don’t always align with visual representations.
 	
 	
-	FID uses an InceptionV3\cite{szegedy2016rethinking} network to calculate the distance between the extracted features of real and generated samples, PSNR measures the ratio of the signal (i.e., the important parts of the image) and noise in the reconstructed image, and SSIM, unlike PSNR, measures not the pixel values, but structural aspects of the samples.
+	FID uses an InceptionV3 \cite{szegedy2016rethinking} network to calculate the distance between the extracted features of real and generated samples, PSNR measures the ratio of the signal (i.e., the important parts of the image) and noise in the reconstructed image, and SSIM, unlike PSNR, measures not the pixel values, but structural aspects of the samples.
 	
-	As a baseline, we can compare these metrics to those measured on a pixel-based 3D DDPM architecture\cite{diff_pixel}:
+	As a baseline, we can compare these metrics to those measured on a pixel-based 3D DDPM architecture \cite{diff_pixel}:
 	
 	\begin{table}[!h]
 		\begin{center}
@@ -359,21 +357,21 @@
 
 	Most publicly available larger fMRI datasets are a result of large-scale collaborations of various healthcare and academic institutions (like the ones described in Section \ref{sec:ABIDE} and \ref{sec:HCP}), since collecting this many scans is both very resource intensive and takes a long time. These collaborations are incredibly valuable data sources, but this also results in a crucial characteristic: the fMRI scans are from different machines.
 	
-	These machines are very precise and well-engineered devices and the scan settings are coordinated to be the same across all study participants, but there can be variances in the different machines and environmental factors that lead to small differences in scans\cite{sutton2008investigation} that can lead to different performance in machine learning applications. If this is the case it could be helpful to introduce a preprocessing step that neutralizes this issue.
+	These machines are very precise and well-engineered devices and the scan settings are coordinated to be the same across all study participants, but there can be variances in the different machines and environmental factors that lead to small differences in scans \cite{sutton2008investigation} that can lead to different performance in machine learning applications. If this is the case it could be helpful to introduce a preprocessing step that neutralizes this issue.
 
 	\subsection{Dataset}
 	
-	My experiments were conducted on the ABIDE dataset\cite{di2014autism} (same as in Section \ref{sec:ABIDE}). More specifically to avoid costly preprocessing steps, but to be able to be keep in control of the connectomes and other facets of the resulting data, I turned to the Preprocessed Connectomes Project (PCP) initiative's ABIDE preprocessed dataset\cite{craddock2013neuro}.
+	My experiments were conducted on the ABIDE dataset \cite{di2014autism} (same as in Section \ref{sec:ABIDE}). More specifically to avoid costly preprocessing steps, but to be able to be keep in control of the connectomes and other facets of the resulting data, I turned to the Preprocessed Connectomes Project (PCP) initiative's ABIDE preprocessed dataset \cite{craddock2013neuro}.
 	
-	Since there is not a widely accepted best practice method for preprocessing fMRI images, the participating five teams have all used their preferred methods to clean the data and various derivatives of this process are downloadable from the provided Amazon S3 bucket. From my perspective, the most important of these is the ROI activation timeseries: for each preprocess method, the resulting preprocessed scans were segmented using 7 different brain atlases. 
+	Since there is not a widely accepted best practice method for preprocessing fMRI images, the participating five teams have all used their preferred methods to clean the data and various derivatives of this process are downloadable from the provided Amazon S3 bucket. From my perspective, the most important of these is the ROI activation time series: for each preprocess method, the resulting preprocessed scans were segmented using 7 different brain atlases. 
 	
-	I built the used dataset from these activation timeseries using methods outlined in a paper about the NeuroGraph dataset\cite{said2023neurograph}. In this paper researchers argue that the reason applying GNNs in the neuroimaging domain has been so challenging is the expansive number of different preprocessing pipelines and the large parameter search space. To counteract this problem, they benchmarked various representations with the most commonly used GNN architectures to offer guidance for dataset construction.
+	I built the used dataset from these activation time series using methods outlined in a paper about the NeuroGraph dataset \cite{said2023neurograph}. In this paper researchers argue that the reason applying GNNs in the neuroimaging domain has been so challenging is the expansive number of different preprocessing pipelines and the large parameter search space. To counteract this problem, they benchmarked various representations with the most commonly used GNN architectures to offer guidance for dataset construction.
 	
 	For their experiments they used the HCP dataset (See Section \ref{sec:HCP}) and constructed five different tasks, each with corresponding datasets with different parameters. Through their benchmarking efforts they have found that a larger number of regions of interests, creating sparser graphs and using the correlation matrix as node features leads the best results across tasks and network types. This is invaluable information for further research and it would have been very beneficial, had I known about it in previous endeavours.
 	
-	For the construction of this dataset, I have followed these suggestions. First the timeseries needed to be normalized to a zero mean and unit variance for each subject individually. With the help of nilearn, the correlation was used to create graph structure and the node features. For the graph structure, only edges running between nodes with a positive correlation were kept and a hyperparameter was introduced to keep only the top $n\%$ of edges with the highest correlation leading to sparser graphs. For edge features the original correlation matrix was kept.
+	For the construction of this dataset, I have followed these suggestions. First the time series needed to be normalized to a zero mean and unit variance for each subject individually. With the help of nilearn, the correlation was used to create graph structure and the node features. For the graph structure, only edges running between nodes with a positive correlation were kept and a hyperparameter was introduced to keep only the top $n\%$ of edges with the highest correlation leading to sparser graphs. For edge features the original correlation matrix was kept.
 	
-	In \cite{said2023neurograph} researchers tested three different sizes of the Schaefer atlases\cite{schaefer2018local}, with 100, 400 and 1000 ROIs and the results indicated better model performance on the larger graphs created using the 1000 regions. Since the preprocessed dataset did not carry timeseries created with this type of atlas, I opted to try two of the available atlases, the Harvard-Oxford atlas\cite{desikan2006automated} with 111 ROIs and the Craddock 400 atlas\cite{craddock2012whole} with 392 ROIs. Just based on these numbers, I had a general expectation to see the second one perform better, but the atlases were created with significantly differing methodologies and often it is hard to predict what works better with a given dataset.
+	In \cite{said2023neurograph} researchers tested three different sizes of the Schaefer atlases \cite{schaefer2018local}, with 100, 400 and 1000 ROIs and the results indicated better model performance on the larger graphs created using the 1000 regions. Since the preprocessed dataset did not carry time series created with this type of atlas, I opted to try two of the available atlases, the Harvard-Oxford atlas \cite{desikan2006automated} with 111 ROIs and the Craddock 400 atlas \cite{craddock2012whole} with 392 ROIs. Just based on these numbers, I had a general expectation to see the second one perform better, but the atlases were created with significantly differing methodologies and often it is hard to predict what works better with a given dataset.
 	
 	\subsection{Methodology}
 	
@@ -381,27 +379,27 @@
 	
 	\begin{figure}[!h]
 		\centering
-		\label{fig:distribution}
 		\includegraphics[width=0.8\textwidth]{figures/ABIDE-sites.jpg}
 		\caption{The distribution of capturing site within the ABIDE dataset, according to the summary spreadsheet.}
+		\label{fig:distribution}
 	\end{figure}
 	
-	In creating a model for this task, the guidance from \cite{said2023neurograph} was followed similarly as to before. This study found that residual- (or skip-) connections play a pivotal role in enhancing the performance of brain networks. My model features 3 GCN layers with ReLU activation and residual connections after each layer, which are then all subjected to averagepooling and then concatenated. I have also employed dropout between layers and used Kaiming-He uniform weight initialization\cite{he2015delving}. The output from this is then fed through two fully connected layers in a similar fashion and finally a sigmoid activation is applied for the binary classification task. 
+	In creating a model for this task, the guidance from \cite{said2023neurograph} was followed similarly as to before. This study found that residual- (or skip-) connections play a pivotal role in enhancing the performance of brain networks. My model features 3 GCN layers with ReLU activation and residual connections after each layer, which are then all subjected to averagepooling and then concatenated. I have also employed dropout between layers and used Kaiming-He uniform weight initialization \cite{he2015delving}. The output from this is then fed through two fully connected layers in a similar fashion and finally a sigmoid activation is applied for the binary classification task. 
 	
 	\begin{figure}[!h]
 		\centering
-		\label{fig:model}
 		\includegraphics[width=\textwidth]{figures/model.png}
-		\caption{Visualization of my used model architecture}
+		\caption{Visualization of my used model architecture.}
+		\label{fig:model}
 	\end{figure}
 	
-	For loss, the matching binary cross entropy was utilized and the ADAM optimizer\cite{kingma2014adam}. I have used a set seed in pytorch to make sure the experiments are repeatable. I added the WandB library to the project and used it both for experimenting with hyperparameters to narrow the search space and find better setups and to conveniently run my experiments.
+	For loss, the matching binary cross entropy was utilized and the ADAM optimizer \cite{kingma2014adam}. I have used a set seed in pytorch to make sure the experiments are repeatable. I added the WandB library to the project and used it both for experimenting with hyperparameters to narrow the search space and find better setups and to conveniently run my experiments.
 	
 	The tests were performed using the three institutions' samples: on one hand, with each of the three sets separately and together with the test set randomly separated from the train set, on the other hand with a leave-one-out method. In the latter, one of the sites is left out of the training set and kept exclusively for testing: this can be a good way to measure how effectively the model can learn patterns that are also applicable in data from previously unseen sites, how good it is at generalizing when taking into account device-to-device differences.
 	
 	As mentioned before, my original plan was to the three most populous sites from the dataset to examine the individual, combined and leave-one-out results and compare them, to get a sense for how a different measuring device impacts the impact the classification performance. I was unable to realize the plan in this capacity however, as the model would not converge and produced wildly varying results on different seeds and settings. 
 	
-	I ran testruns using WandB, where I tried a few different values for parameters in the individual and combined dataset scenarios. As it can be seen on Figure \ref{fig:3site_runs}, the accuracy on the test set was in a lot of cases not really higher than random chance and showed very wide variance, showing significant instability in the training process.
+	I ran test runs using WandB, where I tried a few different values for parameters in the individual and combined dataset scenarios. As it can be seen on Figure \ref{fig:3site_runs}, the accuracy on the test set was in a lot of cases not really higher than random chance and showed very wide variance, showing significant instability in the training process.
 	
 
 	
@@ -410,35 +408,37 @@
 		\begin{subfigure}[b]{0.45\textwidth}
 			\centering
 			\includegraphics[width=\textwidth]{figures/3site_runs.jpg}
-			\caption{Visualization of the accuracy on the test set using the first iteration of the ABIDE dataset, separated for batch size of 1 and 8}
+			\caption{Visualization of the accuracy on the test set using the first iteration of the ABIDE dataset, separated for batch size of 1 and 8.}
 			\label{fig:3site_runs}
 		\end{subfigure}
 		\hfill
 		\begin{subfigure}[b]{0.50\textwidth}
 			\centering
 			\includegraphics[width=\textwidth]{figures/ng_accuracy.png}
-			\caption{Visualization of the accuracy on the test set using the NeuroGraphDataset, separated for batch size of 1 and 8}
+			\caption{Visualization of the accuracy on the test set using the NeuroGraphDataset, separated for batch size of 1 and 8.}
 			\label{fig:neurograph}
 		\end{subfigure}
 	\end{figure}
 	
-	I tested the model with the NeuroGraphDataset\cite{said2023neurograph}, to see if the problem was with the model or with dataset. The model performed well in that case and I have settled on the problem being that there is simply not enough samples in for the model to train effectively on just those three sites combined, let alone on a single one of these sites. The NeuroGraphDataset has 1,078 graphs, while these have a bit more than 100 each. Tests on this dataset have also shown that the model does significantly better with a batch size of 1, so going forward test were run with this parameter.
+	I tested the model with the NeuroGraphDataset \cite{said2023neurograph}, to see if the problem was with the model or with dataset. The model performed well in that case and I have settled on the problem being that there is simply not enough samples in for the model to train effectively on just those three sites combined, let alone on a single one of these sites. The NeuroGraphDataset has 1,078 graphs, while these have a bit more than 100 each. Tests on this dataset have also shown that the model does significantly better with a batch size of 1, so going forward test were run with this parameter.
 	
 	Initial tests of using the entire ABIDE dataset seemed much more promising, so I decided on running the experiment by including all sites and verifying the model in a leave-one-out way to still be able to find answers to the original question. I separated the data from the rest of the sites into a training and validation set and kept remaining set as the test set. These results would be compared to each other and to the results on a site-wise mixed and randomly into training, validation and test separated run.
 	
 	\begin{figure}[!h]
 		\centering
-		\label{fig:final_distribution}
 		\includegraphics[width=0.8\textwidth]{figures/abide_samples.png}
 		\caption{The distribution of capturing site within the ABIDE dataset, stacked columns representing the used ASD and control samples, line representing the supposed total number of samples according to the spreadsheet.}
+		\label{fig:final_distribution}
 	\end{figure}
 	
 	The final distribution of samples among sites was in the end not exactly the same as the spreadsheet results have suggested. There were some missing files, it was suggested not to use samples where the functional image's mean framewise displacement is above 0.2 and some of the timeseries had be deleted due to uneven lengths. The final distribution compared to the original information can be seen on Figure \ref{fig:final_distribution}. In line with this, to keep the results more representative, I decided to exclude sites from the leave-one-out scheme where there were an outlying number of samples: CMU only had 3, NYU had 171 and UM\_1 82.
 	
 	\subsection{Results}
-	
+	In this section I want to share the accuracy results of the runs performed both on the whole dataset and in the leave-one-out method. The results of multiple runs are represented as box plots.
 	
 	\subsubsection{Full dataset results}
+	
+	Figure \ref{fig:full_dataset} has the results of running the model on the full dataset in a 0.7-0.15-0.15 train-validation-test split. Runs had either 30 or 50 epochs, either the Craddock 400 or the Harvard-Oxford brain atlas with either 5 or 10\% graph density.
 	
 	\begin{figure}[!h]
 		\centering
@@ -458,15 +458,17 @@
 
 	\subsubsection{Leave-one-out results}
 
+	Figure \ref{fig:leave_out} shows the results of the leave-on-out experiments. Each box-plot is labelled with the site that was used as the testing section. Each of these were run with similar settings to the full dataset tests.
+
 	
 	\begin{figure}[!h]
 		\centering
-		\begin{subfigure}[b]{0.45\textwidth}
+		\begin{subfigure}[b]{0.8\textwidth}
 			\centering
 			\includegraphics[width=\textwidth]{figures/fkr.png}
 		\end{subfigure}
 		\hfill
-		\begin{subfigure}[b]{0.45\textwidth}
+		\begin{subfigure}[b]{0.8\textwidth}
 			\centering
 			\includegraphics[width=\textwidth]{figures/skr.png}
 		\end{subfigure}
@@ -481,7 +483,11 @@
 	\subsection{Conclusions}
 	
 	
+	Overall the accuracy of the model was not particularly outstanding, but these results still show that the capturing site of fMRI scans does impact how the model performs. The leave-one-out experiment results show a much larger variance than the random test set and it is also visible from the plots that certain sites perform significantly better or worse than others.
 	
+	KKI is a particularly egregious example of this: accuracy hovers around the expected accuracy for random chance, meaning whatever the model had learned from all of the other sites' data is not very applicable in this scenario. No other site dataset performed this bad, but there are very stark differences among these as well.
+	
+	This is generally bad news for both similar experiments and the prospect of creating a usable system for diagnostic purposes. It would be unacceptable for such a system to perform at wildly varying accuracies in different institutions. It seems currently models cannot work well with this type of variance in the input data. To help this problem either a new preprocessing step would need to be introduced to the already complicated pipeline, or the model would need to be enhanced in a way that counteracts this problem.
 	
 	
 	

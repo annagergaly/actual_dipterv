@@ -37,7 +37,7 @@ sweep_config = {
             'values': [10]
         },
         'leave_out': {
-            'values': ["PITT", "OLIN", "OHSU", "SDSU", "TRINITY", "UM_2", "YALE", "LEUVEN_1"]
+            'values': ["LEUVEN_2", "KKI", "STANFORD", "UCLA_1", "UCLA_2", "MAX_MUN", "CALTECH", "SBL", "USM"]
         }
     }   
 }

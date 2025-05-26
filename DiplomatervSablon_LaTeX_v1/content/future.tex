@@ -5,13 +5,24 @@
 \chapter{Summary}
 %----------------------------------------------------------------------------
 
+In this chapter I will give a short overview of my work and how these projects fit into the broader research space and provide some ideas of future enhancements.
+
 \section{Summary}
 
+Using statistical and machine learning methods in the medical domain has been around for quite some time now, but the latest artificial intelligence boom has really sped up its adoption. While a lot of solutions are still in a research phase, since diagnostic solutions can only be safely deployed once their accuracy is on par with humans, we are much more likely to see machine learning solutions in healthcare now, than a few years ago.
 
+Analysing medical imaging scans is a  very active part of this process. This is often done by computer vision solutions, such as CNNs, but in case of fMRI footage, there are challenges that may be better overcome by methods involving graph convolutional networks. fMRIs can be represented as a brain graph, by first segmenting them into ROIs using a brain atlas and then finding correlations in their activation.Graph neural networks are a class model that use the concept of message passing (nodes aggregating features from their neighbours) to enable deep learning on graphs. 
+
+
+In my work I have used GNNs on multiple dataset created from fMRI scans. These datasets are large from a medical standpoint and were created by the international joint effort of multiple medical and research institutions. Still, these datasets are quite small from a deep learning standpoint, containing a few thousand samples each.
+
+I have contributed to a project on generating novel fMRI samples by using the connectome and ROI representations in a diffusion model and using these generated samples to condition a VAE to create fMRI samples. I created a new graph U-net architecture to be used inside the diffusion model. 
+
+Using the ABIDE dataset I created a preprocessing pipeline to go from ROI time series to data usable in models and multiple models that predict whether a patient has ASD. I examined the effect of different collection sites on the outcomes of a model.
 
 \section{Future work}
 
-As continuation of this work I'd like to revisit the connectome based diffusion project and apply the things I have learnt while working on the device-to-device differences project. Since the paper about benchmarking optimal preprocessing of fMRI for use with graph neural networks\cite{said2023neurograph} became available too late to be used in this project, many of the preprocessing steps have been suboptimal: using the mean ROI values for the node features instead of correlation and not taking care to make the graph more sparse by thresholding correlations.
+As continuation of this work I'd like to revisit the connectome based diffusion project and apply the things I have learnt while working on the device-to-device differences project. Since the paper about benchmarking optimal preprocessing of fMRI for use with graph neural networks \cite{said2023neurograph} became available too late to be used in this project, many of the preprocessing steps have been suboptimal: using the mean ROI values for the node features instead of correlation and not taking care to make the graph more sparse by thresholding correlations.
 
 By preparing the dataset in a more favourable way and setting up a similar WandB sweeping system to try out both model and preprocessing parameters it may be possible to stabilize the training loop of the graph U-net and generate good novel samples. Since the graph part of the net can be trained separately, this possibly would not take a lot of computational resources.
 

@@ -5,10 +5,9 @@
 \chapter{Technical background}
 %----------------------------------------------------------------------------
 
-	In my work I used the Python programming language both for implementing machine learning solutions and for creating pipelines; downloading, sorting and preparing data, as well as various scripting needs. For running deep learning tasks I have employed the Google Colab\footnote{\url{https://colab.research.google.com/}}, an online compute platform that lets users run Jupyter notebooks with limitations, one of my own laptops, equipped with an Nvidia GTX 1050Ti portable, and for the particularly resource intensive diffusion task\ref{sec:diffusion} I have received help from a corporate compute cluster.
+	In my work I used the Python programming language both for implementing machine learning solutions and for creating pipelines; downloading, sorting and preparing data, as well as various scripting needs. For running deep learning tasks I have employed the Google Colab\footnote{\url{https://colab.research.google.com/}} environment, an online compute platform that lets users run Jupyter notebooks with limitations, one of my own laptops, equipped with an Nvidia GTX 1050Ti portable, and for the particularly resource intensive diffusion task (See Section \ref{sec:diffusion}) the project received help from a corporate compute cluster.
 	
 	In this chapter I detail the frameworks and packages used in my work, as well as the technical aspects of using and preprocessing fMRI data. 
-	%TODO használt verziók valami appendixben?
 
 \section{Used Frameworks and Packages}
 
@@ -26,9 +25,9 @@
 	
 	\subsection{Graph Neural Network Frameworks}
 	
-	It is completely possible to implement graph neural network layers and complete graph networks only using the Pytorch library and I have also done so, but there are also frameworks built to enable users to create these networks in just a few lines. These libraries have implementations of commonly used GNN layers (such as GCN or GAT) and usually have their own format for graph storage. This can speed up model creation greatly but working purely from Pytorch offers the greatest flexibility.
+	It is completely possible to implement graph neural network layers and complete graph networks only using the Pytorch library and I have also done so, but there are also frameworks built to enable users to create these networks more efficiently. These libraries have implementations of commonly used GNN layers (such as GCN or GAT) and usually have their own format for graph storage. This can speed up model creation greatly but working purely from Pytorch offers the greatest flexibility.
 	
-	I have tried to specific libraries in my work: DGL and PyG. DGL (Deep Graph Library)is a framework agnostic and scalable solution. It represents graphs with a DGLGraph object which stores all graphs as directed using an edge list. It is also possible to add both edge and node features.
+	I have tried two specific libraries in my work: DGL and PyG. DGL (Deep Graph Library) is a framework agnostic and scalable solution. It represents graphs with a DGLGraph object which stores all graphs as directed using an edge list. It is also possible to add both edge and node features.
 	
 	PyG (Pytorch Geometric) was specifically created to enhance Pytorch with better GNN capabilities. It aims to follow the design principles of vanilla Pytorch and provide a good interface to both researchers and first-time users.  
 	
@@ -59,7 +58,7 @@
 
 	\subsection{Data format}
 	
-	NIFTI (Neuroimaging Informatics Technology Initiative) is a file format created to store brain imaging data\cite{nifti}. It was agreed upon as a replace the previous ANALYZE format, which was widespread but had problems: the main problem, that NIFTI aimed to solve was that there was not adequate information about orientation.
+	NIFTI (Neuroimaging Informatics Technology Initiative) is a file format created to store brain imaging data \cite{nifti}. It was agreed upon as a replacement to the previous ANALYZE format, which was widespread but had problems: the main issue, that NIFTI aimed to solve was that there was not adequate information about orientation.
 	
 	Instead of separate files for meta-information and the actual image (like in ANALYZE), this format allows storage as a single .nii file. Since there are very often large areas of a single colour or masked sections these files can be compressed with great results. Most available datasets are downloadable as nii.gz files.
 	
@@ -71,7 +70,7 @@
 	\subsection{Extracting ROI Values and Connectomes}
 	\label{sec:extract}
 	
-	Using the nilearn package it is possible to load brain atlases and use them to segment the brain scan loaded from a NIFTI file using nibabel. It is also possible to create masks and use only certain parts of the brain/atlas. This allows for the creation of average ROI activation timeseries for each region. This means we end up with a tensor that is number of patients $\times$ timesteps $\times$ number of ROIs in size.
+	Using the nilearn package it is possible to load brain atlases and use them to segment the brain scan loaded from a NIFTI file using nibabel. It is also possible to create masks and use only certain parts of the brain/atlas. This allows for the creation of average ROI activation time series for each region. This means we end up with a tensor that is number of patients $\times$ timesteps $\times$ number of ROIs in size.
 	
-	Nilearn also has tools to perform the approximation of connectomes from these timeseries. The ConnectivityMeasure class capable of calculating various types of functional connectivity matrixes on multiple subjects. It can be parameterized with a covariance estimator object for more control over the resulting connectomes.
+	Nilearn also has tools to perform the approximation of connectomes from these time series. The ConnectivityMeasure class is capable of calculating various types of functional connectivity matrices on multiple subjects. It can be parameterized with a covariance estimator object for more control over the resulting connectomes.
 	
