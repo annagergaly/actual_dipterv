@@ -10,16 +10,17 @@ from itertools import islice
 from torch_geometric.datasets import NeuroGraphDataset
 
 # dataset = pytorch_dataset.AutismDataset(['NYU'], node_features='average')
-dataset = NeuroGraphDataset(root='pyG', name='HCPGender')
+all_sites = ["PITT", "OLIN", "OHSU", "SDSU", "TRINITY", "UM_2", "YALE", "CMU", "LEUVEN_1", "LEUVEN_2", "KKI", "STANFORD", "UCLA_1", "UCLA_2", "MAX_MUN", "CALTECH", "SBL", "NYU", "USM", "UM_1"]
+dataset = pytorch_dataset.AutismDataset(all_sites, node_features='correlation', connectome_type='correlation', top_edges=10, brain_atlas="cc400").to(device='cuda')
 
 class GCN(torch.nn.Module):
-    def __init__(self):
+    def __init__(self): 
         super().__init__()
         self.conv1 = GCNConv(dataset.num_node_features, 32)
         torch.nn.init.xavier_uniform(self.conv1.lin.weight)
         self.conv2 = GCNConv(32, 16)
         torch.nn.init.xavier_uniform(self.conv2.lin.weight)
-        self.fully_connected = nn.Linear(16*1000, 64)#dataset.num_classes)
+        self.fully_connected = nn.Linear(16*392, 64)#dataset.num_classes)
         torch.nn.init.xavier_uniform(self.fully_connected.weight)
         self.fully_connected2 = nn.Linear(64, 1)
         torch.nn.init.xavier_uniform(self.fully_connected2.weight)

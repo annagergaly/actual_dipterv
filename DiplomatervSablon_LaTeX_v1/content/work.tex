@@ -30,10 +30,10 @@
 	The very close ratio of affected vs control subjects (539 to 573) means the dataset is well-balanced in terms of a classification task on the diagnosis of subjects. 
 	
 	\subsection{Methodology}
-	In the paper \cite{wang2021graph} by Wang et al. researchers worked with the ABIDE dataset to create a graph convolutional network based architecture for predicting the diagnosis of a patient based on the resting state fMRI. They also used the same architecture to perform a different task on a different dataset: identification of individuals based on the rs-fMRI.
+	In the paper \cite{wang2021graph} by Wang et al., researchers worked with the ABIDE dataset to create a graph convolutional network based architecture for predicting the diagnosis of a patient based on the resting state fMRI. They also used the same architecture to perform a different task on a different dataset: identification of individuals based on the rs-fMRI.
 	
 	
-	 In their model convolutional layers were used to extract information from the neighbouring nodes with skip connections. Outputs from these convolutional layers were followed by an RNN (Recurrent Neural Network) layer to combine spatial representations from all frames. 
+	 In their model, convolutional layers were used to extract information from the neighbouring nodes with skip connections. Outputs from these convolutional layers were followed by an RNN (Recurrent Neural Network) layer to combine spatial representations from all frames. 
 	
 	\begin{figure}[!h]
 		\centering
@@ -42,11 +42,11 @@
 		\label{fig:onlab}
 	\end{figure}
 	
-	In my model, as seen on Figure \ref{fig:onlab}, I strived to examine how a much simpler model would fare on this dataset compared to the research paper's. I simply used 3 GCN layers with ReLU activation with an averagepooling readout function and sigmoid activation at the end for the binary classification task. To be able to compare the results to the ones presented in the paper I also performed a 10-fold crossvalidation.
+	In my model, as seen on Figure \ref{fig:onlab}, I strived to examine how a much simpler model would fare on this dataset compared to the research paper's. I simply used 3 GCN layers with ReLU activation with an average pooling readout function and sigmoid activation at the end for the binary classification task. To be able to compare the results to the ones presented in the paper I also performed a 10-fold crossvalidation.
 	
 	\subsection{Results}
 	
-	As it is visible on Figure \ref{fig:onlab_results}, my model was less performant than the one presented in the paper. This was to be expected due to the simpler construction, but this model comes more close than expected, despite being much simpler and less computationally taxing and not considering timesteps. This is somewhat in line with findings in \cite{said2023neurograph}, where it was found that dynamic datasets (although in that case separate graphs were constructed for time windows) do not offer better performance.
+	As it is visible on Figure \ref{fig:onlab_results}, my model was less performant than the one presented in the paper. This was to be expected due to the simpler construction, but this model comes closer than expected, despite being much simpler and less computationally taxing and not considering timesteps. This is somewhat in line with findings in \cite{said2023neurograph}, where it was found that dynamic datasets (although in that case separate graphs were constructed for time windows) do not offer better performance.
 	
 	\begin{figure}[!h]
 		\centering
@@ -125,11 +125,11 @@
 	
 	\subsubsection{Data Preprocessing}
 	
-	The architecture requires three separate types of data: the fMRI scan itself and the ROI values and connectomes corresponding to the scan. Of these, the HCP dataset only contains the preprocessed fMRI scan, the other two needed to be computed in a preprocessing pipeline (See Section \ref{sec:extract}). The ROI values were extracted with the help of an atlas, which describes the regions of the brain corresponding to the ROI values. Since the focus of the project was on sensory motor tasks, therefore the atlas was filtered for brain regions activated during these tasks (in practice this means 21 ROIs for each side of the brain, so 42 altogether). 
+	The architecture requires three separate types of data: the fMRI scan itself, the ROI values and connectomes corresponding to the scan. Of these, the HCP dataset only contains the preprocessed fMRI scan, the other two needed to be computed in a preprocessing pipeline (See Section \ref{sec:extract}). The ROI values were extracted with the help of an atlas, which describes the regions of the brain corresponding to the ROI values. Since the focus of the project was on sensory motor tasks, the atlas was filtered for brain regions activated during these tasks (in practice this means 21 ROIs for each side of the brain, so 42 altogether). 
 	
-	With the filtered atlas, a mask can be constructed to block out unwanted parts of the brain during the extraction. Understanding the format and meaning of the data used in the preprocessing (e.g.: What ROIs and connectomes are and how to calculate them) is difficult as it requires knowledge in the medical domain. 
+	With the filtered atlas, a mask can be constructed to block out unwanted parts of the brain during the extraction. Understanding the format and meaning of the data used in the preprocessing (e.g.: what ROIs and connectomes are and how to calculate them) is difficult as it requires knowledge in the medical domain. 
 	
-	The correct preprocessing was possible thanks to communication from doctors though our advisors, the documentation of the nilearn package and high-quality HCP dataset. Due to the preprocessing of the dataset, it works best with the Glasser360 brain atlas \cite{sporns2005human}, which was constructed using HCP data and identifies 180+180 (in the left and right hemisphere) regions of interest according to changes in cortical architecture, function, connectivity, and/or topography.
+	The correct preprocessing was possible thanks to communication from doctors though my advisors, the documentation of the nilearn package and high-quality HCP dataset. Due to the preprocessing of the dataset, it works best with the Glasser360 brain atlas \cite{sporns2005human}, which was constructed using HCP data and identifies 180+180 (in the left and right hemisphere) regions of interest according to changes in cortical architecture, function, connectivity, and/or topography.
 
 	\begin{figure}[!h]
 		\centering
@@ -139,11 +139,11 @@
 
 	After the extraction is complete we get a time series of ROI values for each patient. This means a tensor of size $284 \times 16 \times 42$, (time $\times$ repeatedMeasurements $\times$ ROIs). To validate the correctness of the preprocessing a Support Vector Machine was used to classify the ROIs based on the performed task. The ROI values need to be standardized per subject, and separated by task. For this a Python script from previous works was used that generates a csv file with the times slices and the task performed at that time interval. 
 	
-	This file is essential in separating the relevant parts of the scans from the noise where no task is performed. The scans contain measurements for 5 tasks performed twice, so in total 10 for	each patient, with 16 repeated measurements take by the MRI machine (As a further preprocessing step, before the data was used in models the mean value of these 16 steps was taken). This means 124 of the 284 long scan is noise.
+	This file is essential in separating the relevant parts of the scans from the noise where no task is performed. The scans contain measurements for 5 tasks performed twice, so in total 10 for	each patient, with 16 repeated measurements taken by the MRI machine (As a further preprocessing step, before the data was used in models the mean value of these 16 steps was taken). This means 124 of the 284 long scan is noise.
 	
 	Once the preprocessing was correct the SVM achieved 90-95\% accuracy on the classification task based on performed tasks. For calculating the connectomes from the ROI values the nilearn package’s ConnectivityMeasure class was used. 
 	
-	The subject-wise calculated ROI values were separated by tasks and connectomes were calculated for each task separately. Since measurements across different tasks are differ significantly, calculating the connectomes with the tasks mixed would not yield meaningful results.
+	The subject-wise calculated ROI values were separated by tasks and connectomes were calculated for each task separately. Since measurements across different tasks differ significantly, calculating the connectomes with the tasks mixed would not yield meaningful results.
 	
 	\subsubsection{Proposed Architecture}
 	
@@ -179,7 +179,7 @@
 	\end{figure}
 	
 	
-	U-nets are named due to their distinctive architecture: the network consists of a contracting and expansive path, which together form a u-shape (Figure \ref{fig:unet}). The contracting path is a typical CNN with convolutions and max pooling. Conversely the expansive path has upsampling and convolutions, while skip connections are also utilized where dimensions match.
+	U-nets are named due to their distinctive architecture: the network consists of a contracting and expansive path, which together form a u-shape (Figure \ref{fig:unet}). The contracting path is a typical CNN with convolutions and max pooling. Conversely, the expansive path has upsampling and convolutions, while skip connections are also utilized where dimensions match.
 	
 	Since U-nets have been such a successful model type in convolutional networks, there has been an effort to find an analogue in graph convolutional networks as well. Graph U-nets \cite{graph-u-net} follow the original principles of the U-net architecture: the encoder-decoder structure, the skip connections and the general architecture, as seen on Figure \ref{fig:gunet}. 
 	
@@ -188,7 +188,7 @@
 	\begin{figure}[!h]
 		\centering
 		\includegraphics[width=\textwidth]{figures/gunet.png}
-		\caption{Visualization of the graph U-nets architecture\cite{graph-u-net}}
+		\caption{Visualization of the graph U-nets architecture \cite{graph-u-net}.}
 		\label{fig:gunet}
 	\end{figure}
 	
@@ -202,19 +202,19 @@
 	
 	The unpooling layer, unlike image upsampling layers, can only work in connection with a graph pooling layer for which it performs an opposite action: the adjacency matrix is restored to its state prior to the the pooling layer and the node feature matrix is distributed into a shape corresponding to this larger number of nodes, having zero values for newly reappearing nodes.
 	
-	The graph U-net used in our model is a modified version of the architecture proposed in \cite{graph-u-net}. The connectome is used as the adjacency matrix in the U-net, the connectivity values between ROIs are the weights of edges in the graph. 
+	The graph U-net used in the model is a modified version of the architecture proposed in \cite{graph-u-net}. The connectome is used as the adjacency matrix in the U-net, the connectivity values between ROIs are the weights of edges in the graph. 
 	
-	Since we have singular ROI values available for each of the nodes these were distributed along an identity matrix to create a better node feature input for the network, and since the U-net requires symmetry and we will be looking to generate both connectomes and ROI values, the full input is the concatenation of the ROI filled identity matrix and the connectome. 
+	Since we have singular ROI values available for each of the nodes, these were distributed along an identity matrix to create a better node feature input for the network, and since the U-net requires symmetry and we will be looking to generate both connectomes and ROI values, the full input is the concatenation of the ROI filled identity matrix and the connectome. 
 	
 	In this case, since the connectomes are $42 \times 42$, the input of this part of the network is batch size $\times 42 \times 84$.
 	
 	
-	The model has the same number of blocks in both directions, comprised of one GCN layer and one graph pooling layer in the down direction and one graph unpooling layer and one GCN layer in the up direction, with a connecting bottom GCN layer. 
+	The model has the same number of blocks in both directions, comprised of one GCN layer and one graph pooling layer in the down direction, and one graph unpooling layer and one GCN layer in the up direction, with a connecting bottom GCN layer. 
 	
 	Corresponding blocks of the same size are connected via skip connections. Conditioning (with the main concern being time conditioning) is applied at every block by calculating scale and shift vectors via a small MLP.
 	
 	
-	The output of the last block is thus the same size as the input of the first one and it gets separated into node features that are used for ROI values calculation and node features that are used for connectome calculation. The ones used for ROIs are sent through a final GCN layer where they are reduced to single value per node and then distributed along an identity matrix to preserve the symmetry of the data. 
+	The output of the last block is thus the same size as the input of the first one and it gets separated into node features that are used for ROI values calculation and node features that are used for connectome calculation. The ones used for ROIs are sent through a final GCN layer where they are reduced to a single value per node and then distributed along an identity matrix to preserve the symmetry of the data. 
 	
 	For the connectome however, as each value represents an edge between two regions, the other half of the output gets pairwise concatenated and passed through an MLP to determine one value per edge for the connectome.
 	
@@ -231,7 +231,7 @@
 
 	\textbf{Graph U-net} Since this kind of graph U-net and diffusion architecture does not show up in literature often, experiments were done to try and figure out which setups would lead to better generation results in the end. There were wide variety of options to try and the lack of guidance on which ones could be successful in which combination meant trying out new ideas in a fail fast method would be best: the results of the model were inspected after a set number of epochs and if the connectome visually worsened that method could be avoided in the future.
 	
-	The usual output of a graph u-net is just node features and there are various methods to convert them into edge predictions \cite{li2023evaluating}, therefore it was important try a few to see what would work well with the model. In the implementation of the graph U-net I have included a switch that can take None, ’scalar’ and ’mlp’ values and makes experimenting with this easier. 
+	The usual output of a graph U-net is just node features, and there are various methods to convert them into edge predictions \cite{li2023evaluating}, therefore it was important try a few to see what would work well with the model. In the implementation of the graph U-net I have included a switch that can take None, ’scalar’ and ’mlp’ values and makes experimenting with this easier. 
 	
 	The None value keeps the original vector of the output, without any transformations applied. In this setting the network tries to learn the noise as if they were features of the nodes, both for ROI values and edge weights. This is the easiest method to implement but this way it is not taken into consideration how each edge represents the connection between two nodes.
 	
@@ -279,14 +279,14 @@
 		\begin{center}
 			\begin{tabular}{lccc}
 				\toprule
-				Method & FID & PSNR & SSIM \\
+				Method & FID $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ \\
 				\midrule
-				Ours & 400.8233 & 13.4702 & 0.0535 \\
+				Proposed & 400.8233 & 13.4702 & 0.0535 \\
 				Pixel-based & 20.4152 & 27.5278 & 0.8442\\
 				\bottomrule
 			\end{tabular}
 		\end{center}
-		\caption{Comparison of results on quantitative metrics between our method and a pixel-based DDPM method.}
+		\caption{Comparison of results on quantitative metrics between proposed method and a pixel-based DDPM method.}
 	\end{table}
 	
 	From these numerical metrics it is obvious that the results of the architecture are not comparable to the results achieved by using the diffusion to generate the fMRI sample directly. 
@@ -311,8 +311,8 @@
 	
 	\subsection{Conclusions}
 	
-	To understand the poor performance of image generation, we have to examine the results of the connectome and ROI value generation. The training of the model was very unstable, often devolving into a mass of low and high values in various patterns (as seen on Figure \ref{fig:bad-samples})
-	This has become worse in later epochs, as the model could produce promising results after ~20 epochs of training, as seen on Figure \ref{fig:roi-samples}. 
+	To understand the poor performance of image generation, we have to examine the results of the connectome and ROI value generation. The training of the model was very unstable, often devolving into a mass of low and high values in various patterns (as seen on Figure \ref{fig:bad-samples}).
+	This has become worse in later epochs, as the model could produce promising results after $\sim$20 epochs of training, as seen on Figure \ref{fig:roi-samples}. 
 	
 	Overall, this seems to suggest that there is potential for good outcomes in the model architecture but there is some sort of numerical or gradient instability that causes it not to converge. This is backed up by how the loss behaves during training. It can be seen on Figure \ref{fig:loss} that while the loss initially drops many orders of magnitude at the start of training, after zooming in it is obvious that the loss still jumps around and does not actually converge.
 	
@@ -336,7 +336,7 @@
 		\label{fig:roi-samples}
 	\end{figure}
 	
-	While the network is not capable of generating consistently good, novel samples in its current state, there is reason to believe that with the right adjustments this architecture could be capable of learning meaningful representations of the data. Other than this, this idea is a great step in resource intensiveness. It has about 80\% less parameters than a pixel-based diffusion model using 3D-Unet would. It also decouples the diffusion process from the slower, more costly pixel-based VAE, which enables rapid experimentation: once trained, a VAE can be used to test out many GNN models.
+	While the network is not capable of generating consistently good, novel samples in its current state, there is reason to believe that with the right adjustments this architecture could be capable of learning meaningful representations of the data. Other than that, this idea is a great step in resource intensiveness. It has about 80\% less parameters than a pixel-based diffusion model using 3D-Unet would. It also decouples the diffusion process from the slower, more costly pixel-based VAE, which enables rapid experimentation: once trained, a VAE can be used to test out many GNN models.
 	
 		\begin{figure}[!h]
 		\centering
@@ -352,6 +352,8 @@
 		\caption{Loss during training.}
 		\label{fig:loss}
 	\end{figure}
+	
+\pagebreak
 
 \section{Exploring device-to-device differences}
 
@@ -369,9 +371,11 @@
 	
 	For their experiments they used the HCP dataset (See Section \ref{sec:HCP}) and constructed five different tasks, each with corresponding datasets with different parameters. Through their benchmarking efforts they have found that a larger number of regions of interests, creating sparser graphs and using the correlation matrix as node features leads the best results across tasks and network types. This is invaluable information for further research and it would have been very beneficial, had I known about it in previous endeavours.
 	
-	For the construction of this dataset, I have followed these suggestions. First the time series needed to be normalized to a zero mean and unit variance for each subject individually. With the help of nilearn, the correlation was used to create graph structure and the node features. For the graph structure, only edges running between nodes with a positive correlation were kept and a hyperparameter was introduced to keep only the top $n\%$ of edges with the highest correlation leading to sparser graphs. For edge features the original correlation matrix was kept.
+	For the construction of this dataset, I have followed these suggestions. First the time series needed to be normalized to a zero mean and unit variance for each subject individually. With the help of nilearn, the correlation was used to create a graph structure and the node features. For the graph structure, only edges running between nodes with a positive correlation were kept and a hyperparameter was introduced to keep only the top $n\%$ of edges with the highest correlation leading to sparser graphs. For edge features the original correlation matrix was kept.
 	
-	In \cite{said2023neurograph} researchers tested three different sizes of the Schaefer atlases \cite{schaefer2018local}, with 100, 400 and 1000 ROIs and the results indicated better model performance on the larger graphs created using the 1000 regions. Since the preprocessed dataset did not carry time series created with this type of atlas, I opted to try two of the available atlases, the Harvard-Oxford atlas \cite{desikan2006automated} with 111 ROIs and the Craddock 400 atlas \cite{craddock2012whole} with 392 ROIs. Just based on these numbers, I had a general expectation to see the second one perform better, but the atlases were created with significantly differing methodologies and often it is hard to predict what works better with a given dataset.
+	In \cite{said2023neurograph}, researchers tested three different sizes of the Schaefer atlases \cite{schaefer2018local}, with 100, 400 and 1000 ROIs and the results indicated better model performance on the larger graphs created using the 1000 regions. Since the preprocessed dataset did not carry time series created with this type of atlas, I opted to try two of the available atlases, the Harvard-Oxford atlas \cite{desikan2006automated} with 111 ROIs and the Craddock 400 atlas \cite{craddock2012whole} with 392 ROIs. Just based on these numbers, I had a general expectation to see the second one perform better, but the atlases were created with significantly differing methodologies and often it is hard to predict what works better with a given dataset.
+	
+	I experimented with creating a baseline, a not deep learning-based model to compare the results to using tsfresh for feature extraction from the time series and XGBoost and various sklearn models to make the predictions. These were not successful however: this dataset and objective are not an easy classification problem, even complex GNN-based solutions can only perform at about a 70\% accuracy at most, but these alternate solutions could not consistently perform better than random chance, so I scrapped that part of the experiment.
 	
 	\subsection{Methodology}
 	
@@ -384,7 +388,7 @@
 		\label{fig:distribution}
 	\end{figure}
 	
-	In creating a model for this task, the guidance from \cite{said2023neurograph} was followed similarly as to before. This study found that residual- (or skip-) connections play a pivotal role in enhancing the performance of brain networks. My model features 3 GCN layers with ReLU activation and residual connections after each layer, which are then all subjected to averagepooling and then concatenated. I have also employed dropout between layers and used Kaiming-He uniform weight initialization \cite{he2015delving}. The output from this is then fed through two fully connected layers in a similar fashion and finally a sigmoid activation is applied for the binary classification task. 
+	In creating a model for this task, the guidance from \cite{said2023neurograph} was followed similarly as to before. This study found that residual- (or skip-) connections play a pivotal role in enhancing the performance of brain networks. My model features 3 GCN layers with ReLU activation and residual connections after each layer, which are then all subjected to average pooling and then concatenated. I have also employed dropout between layers and used Kaiming-He uniform weight initialization \cite{he2015delving}. The output from this is then fed through two fully connected layers in a similar fashion and finally a sigmoid activation is applied for the binary classification task. 
 	
 	\begin{figure}[!h]
 		\centering
@@ -393,34 +397,36 @@
 		\label{fig:model}
 	\end{figure}
 	
-	For loss, the matching binary cross entropy was utilized and the ADAM optimizer \cite{kingma2014adam}. I have used a set seed in pytorch to make sure the experiments are repeatable. I added the WandB library to the project and used it both for experimenting with hyperparameters to narrow the search space and find better setups and to conveniently run my experiments.
+	For loss, the matching binary cross entropy was utilized and the ADAM optimizer \cite{kingma2014adam}. I have used a set seed in PyTorch to make sure the experiments are repeatable. I added the WandB library to the project and used it both for experimenting with hyperparameters to narrow the search space and find better setups and to conveniently run my experiments.
 	
 	The tests were performed using the three institutions' samples: on one hand, with each of the three sets separately and together with the test set randomly separated from the train set, on the other hand with a leave-one-out method. In the latter, one of the sites is left out of the training set and kept exclusively for testing: this can be a good way to measure how effectively the model can learn patterns that are also applicable in data from previously unseen sites, how good it is at generalizing when taking into account device-to-device differences.
 	
-	As mentioned before, my original plan was to the three most populous sites from the dataset to examine the individual, combined and leave-one-out results and compare them, to get a sense for how a different measuring device impacts the impact the classification performance. I was unable to realize the plan in this capacity however, as the model would not converge and produced wildly varying results on different seeds and settings. 
+	As mentioned before, my original plan was to use the three most populous sites from the dataset to examine the individual, combined and leave-one-out results and compare them, to get a sense for how a different measuring device impacts the impact the classification performance. I was unable to realize the plan in this capacity however, as the model would not converge and produced wildly varying results on different seeds and settings. 
 	
-	I ran test runs using WandB, where I tried a few different values for parameters in the individual and combined dataset scenarios. As it can be seen on Figure \ref{fig:3site_runs}, the accuracy on the test set was in a lot of cases not really higher than random chance and showed very wide variance, showing significant instability in the training process.
+	I ran test runs using WandB, where I experimented with a few different values for parameters in the individual and combined dataset scenarios. As it can be seen on Figure \ref{fig:3site_runs}, the accuracy on the test set was in a lot of cases not really higher than random chance and showed very wide variance, showing significant instability in the training process.
 	
 
 	
 	\begin{figure}[!h]
 		\centering
-		\begin{subfigure}[b]{0.45\textwidth}
+		\begin{subfigure}[t][][t]{0.45\textwidth}
 			\centering
 			\includegraphics[width=\textwidth]{figures/3site_runs.jpg}
 			\caption{Visualization of the accuracy on the test set using the first iteration of the ABIDE dataset, separated for batch size of 1 and 8.}
 			\label{fig:3site_runs}
 		\end{subfigure}
 		\hfill
-		\begin{subfigure}[b]{0.50\textwidth}
+		\begin{subfigure}[t][][t]{0.50\textwidth}
 			\centering
 			\includegraphics[width=\textwidth]{figures/ng_accuracy.png}
 			\caption{Visualization of the accuracy on the test set using the NeuroGraphDataset, separated for batch size of 1 and 8.}
 			\label{fig:neurograph}
 		\end{subfigure}
+		
+		\caption{Visualisation of the results on two datasets.}
 	\end{figure}
 	
-	I tested the model with the NeuroGraphDataset \cite{said2023neurograph}, to see if the problem was with the model or with dataset. The model performed well in that case and I have settled on the problem being that there is simply not enough samples in for the model to train effectively on just those three sites combined, let alone on a single one of these sites. The NeuroGraphDataset has 1,078 graphs, while these have a bit more than 100 each. Tests on this dataset have also shown that the model does significantly better with a batch size of 1, so going forward test were run with this parameter.
+	I tested the model with the NeuroGraphDataset \cite{said2023neurograph}, to see if the problem was with the model or with dataset. The model performed well on that set, leading me to believe that the problem was that there is simply not enough samples for the model to train effectively on those three sites combined, let alone on a single one of them. The NeuroGraphDataset has 1,078 graphs, while these have a bit more than 100 each. Tests on this dataset have also shown that the model does significantly better with a batch size of 1, so going forward test were run with this parameter.
 	
 	Initial tests of using the entire ABIDE dataset seemed much more promising, so I decided on running the experiment by including all sites and verifying the model in a leave-one-out way to still be able to find answers to the original question. I separated the data from the rest of the sites into a training and validation set and kept remaining set as the test set. These results would be compared to each other and to the results on a site-wise mixed and randomly into training, validation and test separated run.
 	
@@ -431,7 +437,7 @@
 		\label{fig:final_distribution}
 	\end{figure}
 	
-	The final distribution of samples among sites was in the end not exactly the same as the spreadsheet results have suggested. There were some missing files, it was suggested not to use samples where the functional image's mean framewise displacement is above 0.2 and some of the timeseries had be deleted due to uneven lengths. The final distribution compared to the original information can be seen on Figure \ref{fig:final_distribution}. In line with this, to keep the results more representative, I decided to exclude sites from the leave-one-out scheme where there were an outlying number of samples: CMU only had 3, NYU had 171 and UM\_1 82.
+	The final distribution of samples among sites was in the end not exactly the same as the spreadsheet results have suggested. There were some missing files, it was suggested not to use samples where the functional image's mean framewise displacement is above 0.2 and some of the time series had be deleted due to uneven lengths. The final distribution compared to the original information can be seen on Figure \ref{fig:final_distribution}. In line with this, to keep the results more representative, I decided to exclude sites from the leave-one-out scheme where there were an outlying number of samples: CMU only had 3, NYU had 171 and UM\_1 82.
 	
 	\subsection{Results}
 	In this section I want to share the accuracy results of the runs performed both on the whole dataset and in the leave-one-out method. The results of multiple runs are represented as box plots.
@@ -442,12 +448,12 @@
 	
 	\begin{figure}[!h]
 		\centering
-		\begin{subfigure}[b]{0.45\textwidth}
+		\begin{subfigure}[b]{0.8\textwidth}
 			\centering
 			\includegraphics[width=\textwidth]{figures/all_atlas.png}
 		\end{subfigure}
 		\hfill
-		\begin{subfigure}[b]{0.45\textwidth}
+		\begin{subfigure}[b]{0.8\textwidth}
 			\centering
 			\includegraphics[width=\textwidth]{figures/all_epochs.png}
 		\end{subfigure}
@@ -487,7 +493,7 @@
 	
 	KKI is a particularly egregious example of this: accuracy hovers around the expected accuracy for random chance, meaning whatever the model had learned from all of the other sites' data is not very applicable in this scenario. No other site dataset performed this bad, but there are very stark differences among these as well.
 	
-	This is generally bad news for both similar experiments and the prospect of creating a usable system for diagnostic purposes. It would be unacceptable for such a system to perform at wildly varying accuracies in different institutions. It seems currently models cannot work well with this type of variance in the input data. To help this problem either a new preprocessing step would need to be introduced to the already complicated pipeline, or the model would need to be enhanced in a way that counteracts this problem.
+	This is generally bad news for both similar experiments and the prospect of creating a usable system for diagnostic purposes. It would be unacceptable for such a system to perform at wildly varying accuracies in different institutions. It seems currently that models cannot work well with this type of variance in the input data. To alleviate this problem, either a new preprocessing step would need to be introduced to the already complicated pipeline, or the model would need to be enhanced in a way that counteracts this problem.
 	
 	
 	

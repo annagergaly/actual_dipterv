@@ -47,11 +47,11 @@ class AutismDataset(Dataset):
         self.labels = []
         for site in sites:
             (autistic, control, autistic_connectomes, control_connectomes) = load_site(site, connectome_type, brain_atlas=brain_atlas)
-            print(f'Loaded {site} with {len(autistic)} autistic and {len(control)} control samples')
-            print(f'Autistic connectomes shape: {autistic_connectomes.shape}')
-            print(f'Control connectomes shape: {control_connectomes.shape}')
-            print(f'Autistic roi_timeseries shape: {autistic[0].shape}')
-            print(f'Control roi_timeseries shape: {control[0].shape}')
+            # print(f'Loaded {site} with {len(autistic)} autistic and {len(control)} control samples')
+            # print(f'Autistic connectomes shape: {autistic_connectomes.shape}')
+            # print(f'Control connectomes shape: {control_connectomes.shape}')
+            # print(f'Autistic roi_timeseries shape: {autistic[0].shape}')
+            # print(f'Control roi_timeseries shape: {control[0].shape}')
             self.roi_timeseries = self.roi_timeseries + autistic
             self.roi_timeseries = self.roi_timeseries + control
             self.labels = self.labels + [1 for _ in autistic]
